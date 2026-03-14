@@ -2,7 +2,6 @@
  * PropertyPanel Component
  * 
  * A configuration panel that allows users to modify zone settings.
- * Changes to the configuration trigger immediate re-renders of the chart.
  */
 
 import React from 'react';
@@ -69,118 +68,40 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
     });
   };
 
-  const panelStyle = {
-    position: 'fixed',
-    top: 0,
-    right: 0,
-    width: '320px',
-    height: '100%',
-    backgroundColor: '#ffffff',
-    boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.15)',
-    zIndex: 1000,
-    display: 'flex',
-    flexDirection: 'column',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  };
-
-  const headerStyle = {
-    padding: '20px',
-    borderBottom: '1px solid #e5e7eb',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#f9fafb',
-  };
-
-  const contentStyle = {
-    padding: '20px',
-    overflowY: 'auto',
-    flex: 1,
-  };
-
-  const fieldGroupStyle = {
-    marginBottom: '20px',
-  };
-
-  const labelStyle = {
-    display: 'block',
-    fontSize: '12px',
-    fontWeight: 600,
-    color: '#374151',
-    marginBottom: '6px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  };
-
-  const inputStyle = {
-    width: '100%',
-    padding: '10px 12px',
-    fontSize: '14px',
-    border: '1px solid #d1d5db',
-    borderRadius: '6px',
-    backgroundColor: '#ffffff',
-    color: '#1f2937',
-    boxSizing: 'border-box',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
-  };
-
-  const selectStyle = {
-    ...inputStyle,
-    cursor: 'pointer',
-  };
-
-  const themePreviewStyle = (themeKey) => ({
-    display: 'inline-block',
-    width: '24px',
-    height: '24px',
-    borderRadius: '50%',
-    backgroundColor: THEMES[themeKey]?.primary || '#3b82f6',
-    marginRight: '8px',
-    verticalAlign: 'middle',
-    border: theme === themeKey ? '3px solid #1f2937' : 'none',
-  });
-
-  const closeButtonStyle = {
-    background: 'none',
-    border: 'none',
-    fontSize: '24px',
-    cursor: 'pointer',
-    color: '#6b7280',
-    padding: '0',
-    lineHeight: 1,
+  const handleThemeClick = (themeKey) => {
+    onUpdate({
+      ...zoneConfig,
+      theme: themeKey,
+    });
   };
 
   return (
-    <div style={panelStyle}>
-      <div style={headerStyle}>
-        <h2 style={{ margin: 0, fontSize: '18px', color: '#1f2937' }}>
-          Configure Chart
-        </h2>
-        <button style={closeButtonStyle} onClick={onClose}>
-          ×
-        </button>
+    <div className="property-panel">
+      <div className="property-panel-header">
+        <h2 className="property-panel-title">Configure Chart</h2>
+        <button className="property-panel-close" onClick={onClose}>×</button>
       </div>
 
-      <div style={contentStyle}>
+      <div className="property-panel-content">
         {/* Chart Title */}
-        <div style={fieldGroupStyle}>
-          <label style={labelStyle}>Chart Title</label>
+        <div className="property-field-group">
+          <label className="property-label">Chart Title</label>
           <input
             type="text"
+            className="property-input"
             value={title || ''}
             onChange={handleTitleChange}
-            style={inputStyle}
             placeholder="Enter chart title"
           />
         </div>
 
         {/* Library Selection */}
-        <div style={fieldGroupStyle}>
-          <label style={labelStyle}>Rendering Library</label>
+        <div className="property-field-group">
+          <label className="property-label">Rendering Library</label>
           <select
+            className="property-select"
             value={library}
             onChange={handleLibraryChange}
-            style={selectStyle}
           >
             <option value={CHART_LIBRARIES.CHARTJS}>
               Chart.js (Line Chart)
@@ -189,7 +110,7 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
               D3.js (Bar Chart)
             </option>
           </select>
-          <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '6px' }}>
+          <p className="property-help-text">
             {library === CHART_LIBRARIES.CHARTJS
               ? 'Renders an interactive line chart'
               : 'Renders a D3-powered bar chart'}
@@ -197,12 +118,12 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
         </div>
 
         {/* Theme Selection */}
-        <div style={fieldGroupStyle}>
-          <label style={labelStyle}>Color Theme</label>
+        <div className="property-field-group">
+          <label className="property-label">Color Theme</label>
           <select
+            className="property-select"
             value={theme}
             onChange={handleThemeChange}
-            style={selectStyle}
           >
             {Object.values(COLOR_THEMES).map((themeKey) => (
               <option key={themeKey} value={themeKey}>
@@ -214,31 +135,26 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
             {Object.values(COLOR_THEMES).map((themeKey) => (
               <div
                 key={themeKey}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  marginRight: '12px',
-                  marginBottom: '8px',
-                  cursor: 'pointer',
-                }}
-                onClick={() => handleThemeChange({ target: { value: themeKey } })}
+                className="property-theme-preview"
+                onClick={() => handleThemeClick(themeKey)}
               >
-                <span style={themePreviewStyle(themeKey)} />
-                <span style={{ fontSize: '13px', color: '#374151' }}>
-                  {themeKey}
-                </span>
+                <span 
+                  className={`property-theme-color ${theme === themeKey ? 'selected' : ''}`}
+                  style={{ backgroundColor: THEMES[themeKey]?.primary || '#3b82f6' }}
+                />
+                <span className="property-theme-label">{themeKey}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Data Source Selection */}
-        <div style={fieldGroupStyle}>
-          <label style={labelStyle}>Data Source (SQL Table)</label>
+        <div className="property-field-group">
+          <label className="property-label">Data Source (SQL Table)</label>
           <select
+            className="property-select"
             value={dataSource?.tableName || ''}
             onChange={handleTableChange}
-            style={selectStyle}
           >
             <option value="">Select a table...</option>
             {availableTables.map((table) => (
@@ -251,12 +167,12 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
 
         {/* Label Column */}
         {dataSource?.tableName && (
-          <div style={fieldGroupStyle}>
-            <label style={labelStyle}>Label Column</label>
+          <div className="property-field-group">
+            <label className="property-label">Label Column</label>
             <select
+              className="property-select"
               value={dataSource?.labelColumn || ''}
               onChange={handleLabelColumnChange}
-              style={selectStyle}
             >
               <option value="">Select column...</option>
               {tableColumns.map((col) => (
@@ -270,12 +186,12 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
 
         {/* Value Column */}
         {dataSource?.tableName && (
-          <div style={fieldGroupStyle}>
-            <label style={labelStyle}>Value Column</label>
+          <div className="property-field-group">
+            <label className="property-label">Value Column</label>
             <select
+              className="property-select"
               value={dataSource?.valueColumn || ''}
               onChange={handleValueColumnChange}
-              style={selectStyle}
             >
               <option value="">Select column...</option>
               {tableColumns.map((col) => (
@@ -288,16 +204,7 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
         )}
 
         {/* Zone Info */}
-        <div
-          style={{
-            marginTop: '30px',
-            padding: '15px',
-            backgroundColor: '#f3f4f6',
-            borderRadius: '6px',
-            fontSize: '12px',
-            color: '#6b7280',
-          }}
-        >
+        <div className="property-info">
           <strong>Zone ID:</strong> {id}
         </div>
       </div>
