@@ -6,7 +6,7 @@
  * to add new charts from the palette.
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import GridLayout from 'react-grid-layout';
 import { v4 as uuidv4 } from 'uuid';
 import 'react-grid-layout/css/styles.css';
@@ -19,6 +19,8 @@ import { CHART_LIBRARIES, createZoneConfig } from '../types/schema';
 const DashboardEditor = ({ dashboard, onDashboardUpdate }) => {
   const [selectedZone, setSelectedZone] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [gridWidth, setGridWidth] = useState(1200);
+  const [currentBreakpoint, setCurrentBreakpoint] = useState({ breakpoint: 'lg', cols: 12, rowHeight: 30 });
   const gridRef = useRef(null);
   const draggedChartRef = useRef(null);
 
@@ -191,6 +193,55 @@ const DashboardEditor = ({ dashboard, onDashboardUpdate }) => {
     draggedChartRef.current = chartOption;
   }, []);
 
+  // ResizeObserver to dynamically calculate grid width and adjust breakpoints
+  useEffect(() => {
+    if (!gridRef.current) return;
+
+    const updateGridDimensions = () => {
+      if (gridRef.current) {
+        const containerWidth = gridRef.current.offsetWidth;
+        // Account for padding (10px on each side)
+        const padding = 20;
+        const newWidth = Math.max(400, containerWidth - padding);
+        setGridWidth(newWidth);
+
+        // Determine breakpoint based on width
+        let breakpoint = 'lg';
+        let newCols = 12;
+        let newRowHeight = 30;
+
+        if (newWidth < 480) {
+          breakpoint = 'xs';
+          newCols = 2;
+          newRowHeight = 60;
+        } else if (newWidth < 768) {
+          breakpoint = 'sm';
+          newCols = 4;
+          newRowHeight = 50;
+        } else if (newWidth < 1200) {
+          breakpoint = 'md';
+          newCols = 8;
+          newRowHeight = 40;
+        }
+
+        setCurrentBreakpoint({ breakpoint, cols: newCols, rowHeight: newRowHeight });
+      }
+    };
+
+    // Initial measurement
+    updateGridDimensions();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateGridDimensions();
+    });
+
+    resizeObserver.observe(gridRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   // Generate layout items for react-grid-layout
   const layout = dashboard.zones.map((zone) => ({
     i: zone.id,
@@ -198,8 +249,8 @@ const DashboardEditor = ({ dashboard, onDashboardUpdate }) => {
     y: zone.gridPosition.y,
     w: zone.gridPosition.w,
     h: zone.gridPosition.h,
-    minW: 3,
-    minH: 3,
+    minW: 2,
+    minH: 2,
   }));
 
   const getZoneBadgeClass = (zone) => {
@@ -245,17 +296,19 @@ const DashboardEditor = ({ dashboard, onDashboardUpdate }) => {
             <GridLayout
               className="layout"
               layout={layout}
-              cols={dashboard.layout.cols}
-              rowHeight={dashboard.layout.rowHeight}
+              cols={currentBreakpoint.cols}
+              rowHeight={currentBreakpoint.rowHeight}
               margin={dashboard.layout.margin}
-              width={1200}
+              width={gridWidth}
               onLayoutChange={handleLayoutChange}
               draggableHandle=".zone-header"
               compactType="vertical"
               preventCollision={false}
               isDroppable={true}
-              droppingItem={{ i: '__dropping-elem__', w: 4, h: 4 }}
+              droppingItem={{ i: '__dropping-elem__', w: 2, h: 2 }}
               onDrop={handleGridDrop}
+              useCSSTransforms={true}
+              containerPadding={[10, 10]}
             >
               {dashboard.zones.map((zone) => (
                 <div

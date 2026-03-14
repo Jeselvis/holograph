@@ -3,6 +3,11 @@
  * 
  * This file defines the JSON schema structure for the dashboard state.
  * The entire dashboard is represented by a single JSON object.
+ * 
+ * Layout Storage Format:
+ * - Grid positions (x, y, w, h) are stored as grid UNITs (relative), not pixels
+ * - This allows the dashboard to scale proportionally across screen sizes
+ * - The actual pixel size is calculated based on container width and rowHeight
  */
 
 // Supported chart library types
@@ -11,10 +16,51 @@ export const CHART_LIBRARIES = {
   CHARTJS: 'chartjs',
 };
 
-// Supported chart types per library
+// Chart types available in each library
 export const CHART_TYPES = {
-  [CHART_LIBRARIES.D3]: 'bar',
-  [CHART_LIBRARIES.CHARTJS]: 'line',
+  // D3 chart types
+  D3_BAR: 'bar',
+  D3_LINE: 'line',
+  D3_AREA: 'area',
+  D3_PIE: 'pie',
+  D3_DONUT: 'donut',
+  D3_SCATTER: 'scatter',
+  // Chart.js chart types
+  CHARTJS_LINE: 'line',
+  CHARTJS_BAR: 'bar',
+  CHARTJS_PIE: 'pie',
+  CHARTJS_DOUGHNUT: 'doughnut',
+  CHARTJS_RADAR: 'radar',
+  CHARTJS_POLAR: 'polarArea',
+};
+
+// Map chart types to their libraries
+export const CHART_TYPE_LIBRARY = {
+  [CHART_TYPES.D3_BAR]: CHART_LIBRARIES.D3,
+  [CHART_TYPES.D3_LINE]: CHART_LIBRARIES.D3,
+  [CHART_TYPES.D3_AREA]: CHART_LIBRARIES.D3,
+  [CHART_TYPES.D3_PIE]: CHART_LIBRARIES.D3,
+  [CHART_TYPES.D3_DONUT]: CHART_LIBRARIES.D3,
+  [CHART_TYPES.D3_SCATTER]: CHART_LIBRARIES.D3,
+  [CHART_TYPES.CHARTJS_LINE]: CHART_LIBRARIES.CHARTJS,
+  [CHART_TYPES.CHARTJS_BAR]: CHART_LIBRARIES.CHARTJS,
+  [CHART_TYPES.CHARTJS_PIE]: CHART_LIBRARIES.CHARTJS,
+  [CHART_TYPES.CHARTJS_DOUGHNUT]: CHART_LIBRARIES.CHARTJS,
+  [CHART_TYPES.CHARTJS_RADAR]: CHART_LIBRARIES.CHARTJS,
+  [CHART_TYPES.CHARTJS_POLAR]: CHART_LIBRARIES.CHARTJS,
+};
+
+// Default chart types per library
+export const DEFAULT_CHART_TYPE = {
+  [CHART_LIBRARIES.D3]: CHART_TYPES.D3_BAR,
+  [CHART_LIBRARIES.CHARTJS]: CHART_TYPES.CHARTJS_LINE,
+};
+
+// Responsive sizing modes
+export const SIZING_MODES = {
+  FIXED: 'fixed',       // Fixed pixel-based sizing
+  RESPONSIVE: 'responsive', // Proportional sizing based on container
+  AUTO: 'auto',         // Auto-fit to content
 };
 
 // Color themes available
@@ -73,7 +119,7 @@ export const THEMES = {
 export const createZoneConfig = (id) => ({
   id,
   library: CHART_LIBRARIES.CHARTJS,
-  chartType: CHART_TYPES[CHART_LIBRARIES.CHARTJS],
+  chartType: CHART_TYPES.CHARTJS_LINE,
   theme: COLOR_THEMES.DEFAULT,
   title: 'New Chart',
   dataSource: {
@@ -107,24 +153,26 @@ export const createInitialDashboard = () => ({
       ...createZoneConfig('zone-2'),
       title: 'Sales by Region',
       library: CHART_LIBRARIES.D3,
-      chartType: CHART_TYPES[CHART_LIBRARIES.D3],
+      chartType: CHART_TYPES.D3_BAR,
       gridPosition: { x: 6, y: 0, w: 6, h: 4 },
     },
     {
       ...createZoneConfig('zone-3'),
       title: 'Product Trends',
+      chartType: CHART_TYPES.CHARTJS_BAR,
       gridPosition: { x: 0, y: 4, w: 4, h: 4 },
     },
     {
       ...createZoneConfig('zone-4'),
       title: 'Customer Growth',
       library: CHART_LIBRARIES.D3,
-      chartType: CHART_TYPES[CHART_LIBRARIES.D3],
+      chartType: CHART_TYPES.D3_LINE,
       gridPosition: { x: 4, y: 4, w: 4, h: 4 },
     },
     {
       ...createZoneConfig('zone-5'),
       title: 'Performance Metrics',
+      chartType: CHART_TYPES.CHARTJS_PIE,
       gridPosition: { x: 8, y: 4, w: 4, h: 4 },
     },
   ],
@@ -132,6 +180,14 @@ export const createInitialDashboard = () => ({
     cols: 12,
     rowHeight: 30,
     margin: [10, 10],
+    sizingMode: SIZING_MODES.RESPONSIVE,
+    // Responsive breakpoints for different screen sizes
+    breakpoints: {
+      lg: { cols: 12, rowHeight: 30 },
+      md: { cols: 8, rowHeight: 40 },
+      sm: { cols: 4, rowHeight: 50 },
+      xs: { cols: 2, rowHeight: 60 },
+    },
   },
 });
 

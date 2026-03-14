@@ -5,20 +5,52 @@
  */
 
 import React from 'react';
-import { CHART_LIBRARIES, CHART_TYPES, COLOR_THEMES, THEMES } from '../types/schema';
+import { CHART_LIBRARIES, CHART_TYPES, CHART_TYPE_LIBRARY, DEFAULT_CHART_TYPE, COLOR_THEMES, THEMES } from '../types/schema';
 import { getAvailableTables, getTableColumns } from '../services/dataService';
 
 const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
-  const { id, library, theme, title, dataSource } = zoneConfig;
+  const { id, library, theme, title, dataSource, chartType } = zoneConfig;
   const availableTables = getAvailableTables();
   const tableColumns = dataSource?.tableName ? getTableColumns(dataSource.tableName) : [];
 
+  // Get available chart types for the current library
+  const availableChartTypes = Object.values(CHART_TYPES).filter(
+    (type) => CHART_TYPE_LIBRARY[type] === library
+  );
+
+  // Get chart type display name
+  const getChartTypeName = (type) => {
+    const names = {
+      [CHART_TYPES.D3_BAR]: 'Bar Chart',
+      [CHART_TYPES.D3_LINE]: 'Line Chart',
+      [CHART_TYPES.D3_AREA]: 'Area Chart',
+      [CHART_TYPES.D3_PIE]: 'Pie Chart',
+      [CHART_TYPES.D3_DONUT]: 'Donut Chart',
+      [CHART_TYPES.D3_SCATTER]: 'Scatter Chart',
+      [CHART_TYPES.CHARTJS_LINE]: 'Line Chart',
+      [CHART_TYPES.CHARTJS_BAR]: 'Bar Chart',
+      [CHART_TYPES.CHARTJS_PIE]: 'Pie Chart',
+      [CHART_TYPES.CHARTJS_DOUGHNUT]: 'Doughnut Chart',
+      [CHART_TYPES.CHARTJS_RADAR]: 'Radar Chart',
+      [CHART_TYPES.CHARTJS_POLAR]: 'Polar Area Chart',
+    };
+    return names[type] || type;
+  };
+
   const handleLibraryChange = (e) => {
     const newLibrary = e.target.value;
+    const defaultType = DEFAULT_CHART_TYPE[newLibrary];
     onUpdate({
       ...zoneConfig,
       library: newLibrary,
-      chartType: CHART_TYPES[newLibrary],
+      chartType: defaultType,
+    });
+  };
+
+  const handleChartTypeChange = (e) => {
+    onUpdate({
+      ...zoneConfig,
+      chartType: e.target.value,
     });
   };
 
@@ -104,16 +136,32 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
             onChange={handleLibraryChange}
           >
             <option value={CHART_LIBRARIES.CHARTJS}>
-              Chart.js (Line Chart)
+              Chart.js
             </option>
             <option value={CHART_LIBRARIES.D3}>
-              D3.js (Bar Chart)
+              D3.js
             </option>
+          </select>
+        </div>
+
+        {/* Chart Type Selection */}
+        <div className="property-field-group">
+          <label className="property-label">Chart Type</label>
+          <select
+            className="property-select"
+            value={chartType || DEFAULT_CHART_TYPE[library]}
+            onChange={handleChartTypeChange}
+          >
+            {availableChartTypes.map((type) => (
+              <option key={type} value={type}>
+                {getChartTypeName(type)}
+              </option>
+            ))}
           </select>
           <p className="property-help-text">
             {library === CHART_LIBRARIES.CHARTJS
-              ? 'Renders an interactive line chart'
-              : 'Renders a D3-powered bar chart'}
+              ? 'Select a chart type from Chart.js library'
+              : 'Select a chart type from D3.js library'}
           </p>
         </div>
 

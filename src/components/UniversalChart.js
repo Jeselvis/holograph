@@ -10,7 +10,7 @@ import React, { useState, useEffect, useRef, useCallback, useLayoutEffect } from
 import D3Adapter from '../adapters/D3Adapter';
 import ChartJsAdapter from '../adapters/ChartJsAdapter';
 import { fetchChartData } from '../services/dataService';
-import { CHART_LIBRARIES } from '../types/schema';
+import { CHART_LIBRARIES, CHART_TYPES, DEFAULT_CHART_TYPE } from '../types/schema';
 
 const UniversalChart = ({ config, width, height }) => {
   const [chartData, setChartData] = useState([]);
@@ -19,7 +19,10 @@ const UniversalChart = ({ config, width, height }) => {
   const [dimensions, setDimensions] = useState({ width: 300, height: 200 });
   const containerRef = useRef(null);
 
-  const { library, theme, title, dataSource } = config;
+  const { library, theme, title, dataSource, chartType } = config;
+
+  // Get the effective chart type - use config or default based on library
+  const effectiveChartType = chartType || DEFAULT_CHART_TYPE[library] || CHART_TYPES.CHARTJS_LINE;
 
   // Get initial dimensions synchronously
   const getInitialDimensions = useCallback(() => {
@@ -179,6 +182,7 @@ const UniversalChart = ({ config, width, height }) => {
         width={dimensions.width}
         height={dimensions.height}
         title={title}
+        chartType={effectiveChartType}
       />
     </div>
   );
