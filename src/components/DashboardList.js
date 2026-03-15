@@ -6,10 +6,14 @@
  */
 
 import React from 'react';
+import BigLogo from '../big logo.png';
 
 const DashboardList = ({ dashboards, onSelect, onCreateNew, onSettings, onDelete, onRefresh }) => {
   return (
     <div className="dashboard-list-container">
+      <div className="dashboard-list-logo">
+        <img src={BigLogo} alt="Holograph" className="big-logo" />
+      </div>
       <div className="dashboard-list-header">
         <h1 className="dashboard-list-title">Dashboards</h1>
         <p className="dashboard-list-subtitle">Create and manage your data visualizations</p>
