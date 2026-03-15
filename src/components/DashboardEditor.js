@@ -20,7 +20,7 @@ import ChartPalette from './ChartPalette';
 import FilterBar from './FilterBar';
 import { CHART_LIBRARIES, COMPONENT_TYPES, createZoneConfig } from '../types/schema';
 import { useFilters } from '../hooks/useFilters';
-import { getTableColumns } from '../services/dataService';
+import { getTableColumns, initializeDataService } from '../services/dataService';
 
 const DashboardEditor = ({ dashboard, onDashboardUpdate }) => {
   const [selectedZone, setSelectedZone] = useState(null);
@@ -33,18 +33,24 @@ const DashboardEditor = ({ dashboard, onDashboardUpdate }) => {
   // Get filter context
   const { filters, configureFilters } = useFilters();
   
-  // Configure which columns can be filtered for each zone based on dataSource
+  // Initialize data service and configure filters
   useEffect(() => {
-    const filterConfig = {};
-    dashboard.zones.forEach((zone) => {
-      if (zone.dataSource?.tableName) {
-        // Get available columns from the table
-        const availableColumns = getTableColumns(zone.dataSource.tableName);
-        // Allow filtering on all columns that exist in the data
-        filterConfig[zone.id] = availableColumns;
-      }
-    });
-    configureFilters(filterConfig);
+    const init = async () => {
+      await initializeDataService();
+      
+      // Configure which columns can be filtered for each zone based on dataSource
+      const filterConfig = {};
+      dashboard.zones.forEach((zone) => {
+        if (zone.dataSource?.tableName) {
+          // Get available columns from the table
+          const availableColumns = getTableColumns(zone.dataSource.tableName);
+          // Allow filtering on all columns that exist in the data
+          filterConfig[zone.id] = availableColumns;
+        }
+      });
+      configureFilters(filterConfig);
+    };
+    init();
   }, [dashboard.zones, configureFilters]);
 
   // Handle layout change from react-grid-layout

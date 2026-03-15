@@ -60,6 +60,92 @@ export const MOCK_DATA_TABLES = {
   ],
 };
 
+// Cache for tables, columns, and unique values
+let tablesCache = null;
+let columnsCache = {};
+let uniqueValuesCache = {};
+
+/**
+ * Initialize the data service cache
+ * In production, this would fetch schema info from the SQL database
+ */
+export const initializeDataService = async () => {
+  // Simulate fetching table list from SQL
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  
+  tablesCache = Object.keys(MOCK_DATA_TABLES);
+  columnsCache = {};
+  uniqueValuesCache = {};
+  
+  // Pre-populate columns cache for each table
+  tablesCache.forEach((tableName) => {
+    if (MOCK_DATA_TABLES[tableName]?.length > 0) {
+      columnsCache[tableName] = Object.keys(MOCK_DATA_TABLES[tableName][0]);
+    }
+  });
+  
+  console.log('Data service initialized with tables:', tablesCache);
+  return tablesCache;
+};
+
+/**
+ * Get cached tables list
+ * @returns {string[]} List of available table names
+ */
+export const getCachedTables = () => {
+  return tablesCache || Object.keys(MOCK_DATA_TABLES);
+};
+
+/**
+ * Get cached columns for a table
+ * @param {string} tableName - Name of the table
+ * @returns {string[]} List of column names
+ */
+export const getCachedColumns = (tableName) => {
+  if (columnsCache[tableName]) {
+    return columnsCache[tableName];
+  }
+  
+  // Fallback to calculating from data
+  const tableData = MOCK_DATA_TABLES[tableName];
+  if (tableData?.length > 0) {
+    const cols = Object.keys(tableData[0]);
+    columnsCache[tableName] = cols;
+    return cols;
+  }
+  return [];
+};
+
+/**
+ * Get unique values for a specific column across all tables
+ * @param {string} columnName - Name of the column
+ * @returns {Array} Array of unique values
+ */
+export const getUniqueValuesForColumn = (columnName) => {
+  if (uniqueValuesCache[columnName]) {
+    return uniqueValuesCache[columnName];
+  }
+  
+  const values = new Set();
+  const tables = getCachedTables();
+  
+  tables.forEach((tableName) => {
+    const cols = getCachedColumns(tableName);
+    if (cols.includes(columnName)) {
+      const tableData = MOCK_DATA_TABLES[tableName];
+      tableData.forEach((row) => {
+        if (row[columnName] !== undefined) {
+          values.add(row[columnName]);
+        }
+      });
+    }
+  });
+  
+  const result = Array.from(values).sort();
+  uniqueValuesCache[columnName] = result;
+  return result;
+};
+
 /**
  * Simulates an Azure Function call to fetch data
  * @param {string} tableName - Name of the SQL table
@@ -169,21 +255,22 @@ export const fetchTableData = async (tableName, columns = null, filters = null) 
  * Get available data tables
  * @returns {string[]} List of available table names
  */
-export const getAvailableTables = () => Object.keys(MOCK_DATA_TABLES);
+export const getAvailableTables = () => getCachedTables();
 
 /**
  * Get table columns for a given table
  * @param {string} tableName - Name of the table
  * @returns {string[]} List of column names
  */
-export const getTableColumns = (tableName) => {
-  const tableData = MOCK_DATA_TABLES[tableName];
-  if (!tableData || tableData.length === 0) return [];
-  return Object.keys(tableData[0]);
-};
+export const getTableColumns = (tableName) => getCachedColumns(tableName);
 
 export default {
   fetchChartData,
+  fetchTableData,
   getAvailableTables,
   getTableColumns,
+  initializeDataService,
+  getCachedTables,
+  getCachedColumns,
+  getUniqueValuesForColumn,
 };

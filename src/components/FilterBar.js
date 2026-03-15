@@ -4,11 +4,18 @@
  * A component that provides a UI for manually configuring and applying
  * filters to the dashboard. This allows users to interactively filter
  * data across all charts.
+ * 
+ * Flow: Select Table -> Select Column -> Select Values
  */
 
 import React, { useState, useEffect } from 'react';
 import { useFilters } from '../hooks/useFilters';
-import { getAvailableTables, getTableColumns, MOCK_DATA_TABLES } from '../services/dataService';
+import { 
+  getCachedTables, 
+  getCachedColumns, 
+  getUniqueValuesForColumn,
+  initializeDataService 
+} from '../services/dataService';
 
 const FilterBar = ({ visible = true }) => {
   const { 
@@ -19,64 +26,65 @@ const FilterBar = ({ visible = true }) => {
     hasActiveFilters 
   } = useFilters();
 
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [availableTables, setAvailableTables] = useState([]);
+  const [selectedTable, setSelectedTable] = useState('');
   const [availableColumns, setAvailableColumns] = useState([]);
   const [selectedColumn, setSelectedColumn] = useState('');
   const [selectedValues, setSelectedValues] = useState([]);
   const [availableValues, setAvailableValues] = useState([]);
 
-  // Get all unique columns from available tables
+  // Initialize data service on mount
   useEffect(() => {
-    const tables = getAvailableTables();
-    const columns = new Set();
-    
-    tables.forEach((table) => {
-      const tableColumns = getTableColumns(table);
-      tableColumns.forEach((col) => columns.add(col));
-    });
-    
-    setAvailableColumns(Array.from(columns).sort());
+    const init = async () => {
+      await initializeDataService();
+      setAvailableTables(getCachedTables());
+      setIsInitialized(true);
+    };
+    init();
   }, []);
+
+  // Get columns when table is selected
+  useEffect(() => {
+    if (!selectedTable) {
+      setAvailableColumns([]);
+      setSelectedColumn('');
+      return;
+    }
+
+    const columns = getCachedColumns(selectedTable);
+    setAvailableColumns(columns);
+    setSelectedColumn('');
+    setAvailableValues([]);
+    setSelectedValues([]);
+  }, [selectedTable]);
 
   // Get available values when column is selected
   useEffect(() => {
     if (!selectedColumn) {
       setAvailableValues([]);
+      setSelectedValues([]);
       return;
     }
 
-    // Collect all unique values for the selected column from all tables
-    const tables = getAvailableTables();
-    const values = new Set();
-    
-    tables.forEach((table) => {
-      const tableColumns = getTableColumns(table);
-      if (tableColumns.includes(selectedColumn)) {
-        const tableData = MOCK_DATA_TABLES[table];
-        if (tableData) {
-          tableData.forEach((row) => {
-            if (row[selectedColumn] !== undefined) {
-              values.add(row[selectedColumn]);
-            }
-          });
-        }
-      }
-    });
-    
-    setAvailableValues(Array.from(values).sort());
+    const values = getUniqueValuesForColumn(selectedColumn);
+    setAvailableValues(values);
+    setSelectedValues(filters[selectedColumn] || []);
   }, [selectedColumn]);
 
-  // Update selected values when filters change
+  // Update selected values when filters change externally
   useEffect(() => {
     if (selectedColumn && filters[selectedColumn]) {
       setSelectedValues(filters[selectedColumn]);
-    } else {
-      setSelectedValues([]);
     }
   }, [filters, selectedColumn]);
 
+  const handleTableChange = (e) => {
+    setSelectedTable(e.target.value);
+  };
+
   const handleColumnChange = (e) => {
     setSelectedColumn(e.target.value);
-    setSelectedValues([]);
   };
 
   const handleValueToggle = (value) => {
@@ -97,18 +105,20 @@ const FilterBar = ({ visible = true }) => {
     setFilter(selectedColumn, availableValues);
   };
 
-  const handleClearAll = () => {
-    setSelectedColumn('');
-    setSelectedValues([]);
-    clearAllFilters();
-  };
-
   const handleClearColumn = () => {
     clearFilter(selectedColumn);
     setSelectedValues([]);
   };
 
-  if (!visible) {
+  const handleClearAll = () => {
+    setSelectedTable('');
+    setSelectedColumn('');
+    setSelectedValues([]);
+    setAvailableValues([]);
+    clearAllFilters();
+  };
+
+  if (!visible || !isInitialized) {
     return null;
   }
 
@@ -127,20 +137,39 @@ const FilterBar = ({ visible = true }) => {
       </div>
       
       <div className="filter-bar-content">
+        {/* Table Selection */}
         <div className="filter-bar-row">
-          <label className="filter-bar-label">Column:</label>
+          <label className="filter-bar-label">Table:</label>
           <select 
             className="filter-bar-select"
-            value={selectedColumn}
-            onChange={handleColumnChange}
+            value={selectedTable}
+            onChange={handleTableChange}
           >
-            <option value="">Select a column...</option>
-            {availableColumns.map((col) => (
-              <option key={col} value={col}>{col}</option>
+            <option value="">Select a table...</option>
+            {availableTables.map((table) => (
+              <option key={table} value={table}>{table}</option>
             ))}
           </select>
         </div>
         
+        {/* Column Selection (shown when table is selected) */}
+        {selectedTable && availableColumns.length > 0 && (
+          <div className="filter-bar-row">
+            <label className="filter-bar-label">Column:</label>
+            <select 
+              className="filter-bar-select"
+              value={selectedColumn}
+              onChange={handleColumnChange}
+            >
+              <option value="">Select a column...</option>
+              {availableColumns.map((col) => (
+                <option key={col} value={col}>{col}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        
+        {/* Values Selection (shown when column is selected) */}
         {selectedColumn && (
           <>
             <div className="filter-bar-row filter-bar-actions">
@@ -180,9 +209,10 @@ const FilterBar = ({ visible = true }) => {
           </>
         )}
         
+        {/* Active Filters Display */}
         {hasActiveFilters() && (
           <div className="filter-bar-active">
-            <span className="filter-bar-label">Active Filters:</span>
+            <span className="filter-bar-label">Active:</span>
             <div className="filter-bar-tags">
               {Object.entries(filters).map(([column, values]) => (
                 <span key={column} className="filter-bar-tag">
