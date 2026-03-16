@@ -350,18 +350,9 @@ const DashboardViewer = ({
 
   return (
     <div className={`dashboard-viewer ${className}`} ref={containerRef}>
-      {/* Dashboard Header */}
-      {(dashboard.showTitle !== false) && (
-        <div className="viewer-dashboard-header">
-          <h1 className="viewer-dashboard-title">{dashboard.name}</h1>
-          {(dashboard.showSubtitle !== false) && dashboard.description && (
-            <p className="viewer-dashboard-subtitle">{dashboard.description}</p>
-          )}
-        </div>
-      )}
-
-      {/* Dashboard Grid */}
-      <div className="viewer-dashboard-grid">
+    </div>
+  );
+};
         {dashboard.zones?.length === 0 ? (
           <div className="viewer-empty-state">
             <p>No charts to display</p>

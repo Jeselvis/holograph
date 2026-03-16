@@ -5,6 +5,8 @@
  */
 
 import React from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { CHART_LIBRARIES, CHART_TYPES, CHART_TYPE_LIBRARY, DEFAULT_CHART_TYPE, COLOR_THEMES, THEMES, COMPONENT_TYPES, LEGEND_POSITIONS } from '../types/schema';
 import { getAvailableTables, getTableColumns } from '../services/dataService';
 
@@ -173,10 +175,10 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
   };
 
   // Rich text-specific handlers
-  const handleContentChange = (e) => {
+  const handleContentChange = (value) => {
     onUpdate({
       ...zoneConfig,
-      content: e.target.value,
+      content: value,
     });
   };
 
@@ -554,13 +556,21 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
             {zoneConfig.contentMode !== 'data' && (
               <div className="property-field-group">
                 <label className="property-label">Text Content</label>
-                <textarea
-                  className="property-input"
+                <ReactQuill
+                  theme="snow"
                   value={zoneConfig.content || ''}
                   onChange={handleContentChange}
                   placeholder="Enter your text content..."
-                  rows={4}
-                  style={{ resize: 'vertical', minHeight: '80px' }}
+                  style={{ marginBottom: '50px', height: '250px' }}
+                  modules={{
+                    toolbar: [
+                      [{ 'header': [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline', 'strike'],
+                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      ['link'],
+                      ['clean']
+                    ],
+                  }}
                 />
               </div>
             )}

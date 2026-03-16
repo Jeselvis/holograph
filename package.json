@@ -20,5 +20,8 @@
     "visualization",
     "react"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "react-quill": "^2.0.0"
+  }
 }
