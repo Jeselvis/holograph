@@ -2,6 +2,7 @@
   "name": "holograph",
   "version": "1.0.0",
   "private": true,
+  "homepage": "/",
   "description": "Monorepo for Holograph dashboard system - includes designer and viewer packages",
   "workspaces": [
     "packages/*"
@@ -12,7 +13,9 @@
     "build:schema": "cd packages/schema && npm run build",
     "build:viewer": "cd packages/viewer && npm run build",
     "build:designer": "cd packages/designer && npm run build",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "deploy": "npm run build && gh-pages -d packages/designer/build",
+    "deploy:viewer": "npm run build:viewer && gh-pages -d packages/viewer/build"
   },
   "keywords": [
     "dashboard",
@@ -22,6 +25,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "react-quill": "^2.0.0"
+    "react-quill": "^2.0.0",
+    "react-router-dom": "^7.13.1"
   }
 }

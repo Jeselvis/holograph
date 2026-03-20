@@ -1853,3 +1853,67 @@ body {
   justify-content: center;
   min-height: 100px;
 }
+
+/* ============================================
+   Standalone Viewer Page
+   ============================================ */
+
+.viewer-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
+.viewer-header {
+  background: white;
+  padding: 20px 30px;
+  border-bottom: 1px solid #e1e4e8;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.viewer-title {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.viewer-description {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.viewer-content {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.viewer-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #888;
+}
+
+.viewer-footer {
+  background: white;
+  padding: 12px 30px;
+  border-top: 1px solid #e1e4e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.viewer-badge {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.viewer-dashboard-id {
+  color: #888;
+  font-size: 12px;
+}
