@@ -2,7 +2,7 @@
   "name": "holograph",
   "version": "1.0.0",
   "private": true,
-  "homepage": "/",
+  "homepage": "https://jeselvis.github.io/holograph/",
   "description": "Monorepo for Holograph dashboard system - includes designer and viewer packages",
   "workspaces": [
     "packages/*"
