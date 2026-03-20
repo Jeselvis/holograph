@@ -8,14 +8,11 @@
     "packages/*"
   ],
   "scripts": {
-    "start": "cd packages/designer && npm start",
-    "build": "npm run build --workspaces",
-    "build:schema": "cd packages/schema && npm run build",
-    "build:viewer": "cd packages/viewer && npm run build",
-    "build:designer": "cd packages/designer && npm run build",
-    "test": "npm run test --workspaces --if-present",
-    "deploy": "npm run build && gh-pages -d packages/designer/build",
-    "deploy:viewer": "npm run build:viewer && gh-pages -d packages/viewer/build"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "deploy": "npm run build && gh-pages -d build"
   },
   "keywords": [
     "dashboard",
@@ -25,7 +22,16 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "chart.js": "^4.5.1",
+    "d3": "^7.9.0",
+    "react-chartjs-2": "^5.3.1",
+    "react-grid-layout": "^2.2.2",
     "react-quill": "^2.0.0",
-    "react-router-dom": "^7.13.1"
+    "react-router-dom": "^7.13.1",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0",
+    "react-scripts": "^5.0.1"
   }
 }
