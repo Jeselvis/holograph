@@ -243,6 +243,7 @@ const AppContent = () => {
             <DashboardEditor
               dashboard={currentDashboard.schema}
               onDashboardUpdate={handleDashboardUpdate}
+              enabledLibraries={settings?.enabledLibraries}
             />
           </div>
         </>

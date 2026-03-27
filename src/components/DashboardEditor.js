@@ -22,7 +22,7 @@ import { CHART_LIBRARIES, COMPONENT_TYPES, createZoneConfig } from '../types/sch
 import { useFilters } from '../hooks/useFilters';
 import { getTableColumns, initializeDataService } from '../services/dataService';
 
-const DashboardEditor = ({ dashboard, onDashboardUpdate }) => {
+const DashboardEditor = ({ dashboard, onDashboardUpdate, enabledLibraries }) => {
   const [selectedZone, setSelectedZone] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [gridWidth, setGridWidth] = useState(1200);
@@ -326,7 +326,7 @@ const DashboardEditor = ({ dashboard, onDashboardUpdate }) => {
   return (
     <>
       {/* Chart Palette */}
-      <ChartPalette onDragStart={handlePaletteDragStart} />
+      <ChartPalette onDragStart={handlePaletteDragStart} enabledLibraries={enabledLibraries} />
       
       <div className="dashboard-editor-container">
         {/* Header */}

@@ -10,6 +10,7 @@
 import React, { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
 import D3Adapter from '../adapters/D3Adapter';
 import ChartJsAdapter from '../adapters/ChartJsAdapter';
+import NivoAdapter from '../adapters/NivoAdapter';
 import { fetchChartData } from '../services/dataService';
 import { CHART_LIBRARIES, CHART_TYPES, DEFAULT_CHART_TYPE } from '../types/schema';
 
@@ -112,6 +113,8 @@ const UniversalChart = ({ config, width, height, filters = null }) => {
         return D3Adapter;
       case CHART_LIBRARIES.CHARTJS:
         return ChartJsAdapter;
+      case CHART_LIBRARIES.NIVO:
+        return NivoAdapter;
       default:
         console.warn(`Unknown library: ${library}, defaulting to ChartJsAdapter`);
         return ChartJsAdapter;

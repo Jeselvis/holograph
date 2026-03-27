@@ -20,6 +20,7 @@ import 'react-resizable/css/styles.css';
 // Import chart adapters
 import D3Adapter from './adapters/D3Adapter';
 import ChartJsAdapter from './adapters/ChartJsAdapter';
+import NivoAdapter from './adapters/NivoAdapter';
 
 // Import data service
 import { fetchChartData, fetchTableData, initializeDataService } from './services/dataService';
@@ -142,6 +143,8 @@ const ZoneContent = ({ zone, filters, onFilterChange, zoneData }) => {
     switch (library) {
       case CHART_LIBRARIES.D3:
         return D3Adapter;
+      case CHART_LIBRARIES.NIVO:
+        return NivoAdapter;
       case CHART_LIBRARIES.CHARTJS:
       default:
         return ChartJsAdapter;
@@ -326,6 +329,7 @@ const DashboardViewer = ({
   const getLibraryAttr = (lib) => {
     if (lib === CHART_LIBRARIES.D3) return 'd3';
     if (lib === CHART_LIBRARIES.CHARTJS) return 'chartjs';
+    if (lib === CHART_LIBRARIES.NIVO) return 'nivo';
     return 'chartjs';
   };
 
