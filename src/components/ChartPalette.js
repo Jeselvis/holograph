@@ -170,52 +170,65 @@ const CHART_OPTIONS = [
     ),
     description: 'Scatter point chart',
   },
-  // Nivo charts
-  {
-    id: 'nivo-line',
-    library: CHART_LIBRARIES.NIVO,
-    chartType: CHART_TYPES.NIVO_LINE,
-    title: 'Nivo Line',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-        <circle cx="15" cy="21" r="2" fill="currentColor" />
-        <circle cx="9" cy="3" r="2" fill="currentColor" />
-      </svg>
-    ),
-    description: 'Beautiful animated line',
-  },
-  {
-    id: 'nivo-bar',
-    library: CHART_LIBRARIES.NIVO,
-    chartType: CHART_TYPES.NIVO_BAR,
-    title: 'Nivo Bar',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="3" y="12" width="4" height="9" rx="1" />
-        <rect x="10" y="6" width="4" height="15" rx="1" />
-        <rect x="17" y="3" width="4" height="18" rx="1" />
-        <rect x="3" y="12" width="4" height="2" rx="0.5" fill="currentColor" />
-        <rect x="10" y="6" width="4" height="2" rx="0.5" fill="currentColor" />
-        <rect x="17" y="3" width="4" height="2" rx="0.5" fill="currentColor" />
-      </svg>
-    ),
-    description: 'Animated bar chart',
-  },
-  {
-    id: 'nivo-pie',
-    library: CHART_LIBRARIES.NIVO,
-    chartType: CHART_TYPES.NIVO_PIE,
-    title: 'Nivo Pie',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 2 L12 12 L20 8" />
-        <path d="M12 12 L6 18" strokeDasharray="2 2" />
-      </svg>
-    ),
-    description: 'Beautiful pie chart',
-  },
+// Nivo charts
+{
+  id: 'nivo-line',
+  library: CHART_LIBRARIES.NIVO,
+  chartType: CHART_TYPES.NIVO_LINE,
+  title: 'Nivo Line',
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      <circle cx="15" cy="21" r="2" fill="currentColor" />
+      <circle cx="9" cy="3" r="2" fill="currentColor" />
+    </svg>
+  ),
+  description: 'Beautiful animated line',
+},
+{
+  id: 'nivo-bar',
+  library: CHART_LIBRARIES.NIVO,
+  chartType: CHART_TYPES.NIVO_BAR,
+  title: 'Nivo Bar',
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="12" width="4" height="9" rx="1" />
+      <rect x="10" y="6" width="4" height="15" rx="1" />
+      <rect x="17" y="3" width="4" height="18" rx="1" />
+      <rect x="3" y="12" width="4" height="2" rx="0.5" fill="currentColor" />
+      <rect x="10" y="6" width="4" height="2" rx="0.5" fill="currentColor" />
+      <rect x="17" y="3" width="4" height="2" rx="0.5" fill="currentColor" />
+    </svg>
+  ),
+  description: 'Animated bar chart',
+},
+{
+  id: 'nivo-pie',
+  library: CHART_LIBRARIES.NIVO,
+  chartType: CHART_TYPES.NIVO_PIE,
+  title: 'Nivo Pie',
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2 L12 12 L20 8" />
+      <path d="M12 12 L6 18" strokeDasharray="2 2" />
+    </svg>
+  ),
+  description: 'Beautiful pie chart',
+},
+{
+  id: 'nivo-choropleth',
+  library: CHART_LIBRARIES.NIVO,
+  chartType: CHART_TYPES.NIVO_CHOROPLETH,
+  title: 'Nivo Choropleth',
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M2 10 L5 6 L10 4 L15 6 L22 10 L19 13 L14 15 L10 11 L6 15 L3 13 Z" />
+      <path d="M10 4 L10 16 M15 6 L15 14" />
+    </svg>
+  ),
+  description: 'Geographic heat map',
+},
   // Table component
   {
     id: 'table',

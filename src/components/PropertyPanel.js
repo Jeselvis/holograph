@@ -35,6 +35,10 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
       [CHART_TYPES.CHARTJS_DOUGHNUT]: 'Doughnut Chart',
       [CHART_TYPES.CHARTJS_RADAR]: 'Radar Chart',
       [CHART_TYPES.CHARTJS_POLAR]: 'Polar Area Chart',
+      [CHART_TYPES.NIVO_LINE]: 'Line Chart',
+      [CHART_TYPES.NIVO_BAR]: 'Bar Chart',
+      [CHART_TYPES.NIVO_PIE]: 'Pie Chart',
+      [CHART_TYPES.NIVO_CHOROPLETH]: 'Choropleth Map',
     };
     return names[type] || type;
   };
@@ -301,6 +305,9 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
             <option value={CHART_LIBRARIES.D3}>
               D3.js
             </option>
+            <option value={CHART_LIBRARIES.NIVO}>
+              Nivo
+            </option>
           </select>
         </div>
         )}
@@ -320,11 +327,13 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
               </option>
             ))}
           </select>
-          <p className="property-help-text">
-            {library === CHART_LIBRARIES.CHARTJS
-              ? 'Select a chart type from Chart.js library'
-              : 'Select a chart type from D3.js library'}
-          </p>
+            <p className="property-help-text">
+              {library === CHART_LIBRARIES.CHARTJS
+                ? 'Select a chart type from Chart.js library'
+                : library === CHART_LIBRARIES.D3
+                ? 'Select a chart type from D3.js library'
+                : 'Select a chart type from Nivo library'}
+            </p>
         </div>
         )}
 
@@ -392,6 +401,119 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
                 </select>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Choropleth-specific settings */}
+        {componentType === COMPONENT_TYPES.CHART && chartType === CHART_TYPES.NIVO_CHOROPLETH && (
+          <div className="property-field-group">
+            <label className="property-label">Map Configuration</label>
+
+            {/* Geographical Data Source */}
+            <div className="property-field-group" style={{ marginTop: '12px' }}>
+              <label className="property-label" style={{ fontSize: '12px', color: '#6b7280' }}>Geographical Data</label>
+              <select
+                className="property-select"
+                value={zoneConfig.mapFeatures || 'world-50m'}
+                onChange={(e) => onUpdate({
+                  ...zoneConfig,
+                  mapFeatures: e.target.value,
+                })}
+              >
+                <option value="world-50m">World (50m resolution)</option>
+                <option value="world-110m">World (110m resolution)</option>
+                <option value="usa">United States</option>
+                <option value="europe">Europe</option>
+                <option value="custom">Custom GeoJSON</option>
+              </select>
+              <p className="property-help-text">
+                Select the geographical features for your map
+              </p>
+            </div>
+
+            {/* Projection Type */}
+            <div className="property-field-group" style={{ marginTop: '12px' }}>
+              <label className="property-label" style={{ fontSize: '12px', color: '#6b7280' }}>Projection</label>
+              <select
+                className="property-select"
+                value={zoneConfig.projectionType || 'naturalEarth1'}
+                onChange={(e) => onUpdate({
+                  ...zoneConfig,
+                  projectionType: e.target.value,
+                })}
+              >
+                <option value="naturalEarth1">Natural Earth 1</option>
+                <option value="mercator">Mercator</option>
+                <option value="orthographic">Orthographic</option>
+                <option value="equirectangular">Equirectangular</option>
+                <option value="albersUsa">Albers USA</option>
+              </select>
+            </div>
+
+            {/* Projection Scale */}
+            <div className="property-field-group" style={{ marginTop: '12px' }}>
+              <label className="property-label" style={{ fontSize: '12px', color: '#6b7280' }}>Scale</label>
+              <input
+                type="range"
+                min="50"
+                max="200"
+                step="10"
+                className="property-input"
+                value={zoneConfig.projectionScale || 100}
+                onChange={(e) => onUpdate({
+                  ...zoneConfig,
+                  projectionScale: parseInt(e.target.value),
+                })}
+                style={{ margin: '8px 0' }}
+              />
+              <span className="property-help-text">{zoneConfig.projectionScale || 100}</span>
+            </div>
+
+            {/* Custom GeoJSON URL */}
+            {zoneConfig.mapFeatures === 'custom' && (
+              <div className="property-field-group" style={{ marginTop: '12px' }}>
+                <label className="property-label" style={{ fontSize: '12px', color: '#6b7280' }}>GeoJSON URL</label>
+                <input
+                  type="text"
+                  className="property-input"
+                  value={zoneConfig.geoJsonUrl || ''}
+                  onChange={(e) => onUpdate({
+                    ...zoneConfig,
+                    geoJsonUrl: e.target.value,
+                  })}
+                  placeholder="https://example.com/geojson-data.json"
+                />
+                <p className="property-help-text">
+                  URL to your custom GeoJSON features
+                </p>
+              </div>
+            )}
+
+            {/* Match Function */}
+            <div className="property-field-group" style={{ marginTop: '12px' }}>
+              <label className="property-label" style={{ fontSize: '12px', color: '#6b7280' }}>Data Matching</label>
+              <select
+                className="property-select"
+                value={zoneConfig.matchBy || 'id'}
+                onChange={(e) => onUpdate({
+                  ...zoneConfig,
+                  matchBy: e.target.value,
+                })}
+              >
+                <option value="id">Match by ID</option>
+                <option value="properties.name">Match by Name</option>
+                <option value="properties.iso_a3">Match by ISO Code</option>
+                <option value="custom">Custom Match Function</option>
+              </select>
+              <p className="property-help-text">
+                How to match your data to map features
+              </p>
+            </div>
+
+            <div className="property-info" style={{ marginTop: '16px' }}>
+              <strong>Note:</strong> Choropleth maps require geographical features data.
+              For production use, consider using @nivo/geo-atlas package.
+            </div>
           </div>
         )}
 

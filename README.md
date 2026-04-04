@@ -15,8 +15,9 @@ A zero-VM dashboard application with pluggable chart adapters (D3.js and Chart.j
   - [Webhook Payloads](#webhook-payloads)
   - [Save Draft](#save-draft)
   - [Publish](#publish)
-  - [List Documents](#list-documents)
-  - [Custom Handlers](#custom-handlers)
+- [List Documents](#list-documents)
+- [Custom Handlers](#custom-handlers)
+- [Choropleth Map Configuration](#choropleth-map-configuration)
 - [Dashboard Schema](#dashboard-schema)
 - [API Reference](#api-reference)
 
@@ -515,15 +516,21 @@ The dashboard is stored as a JSON object with the following structure:
     {
       "id": "zone-1",
       "componentType": "chart", // chart, table, image, richtext
-      "library": "chartjs",    // chartjs or d3
-      "chartType": "line",     // Chart type
+      "library": "nivo",       // chartjs, d3, or nivo
+      "chartType": "choropleth", // Chart type (line, bar, pie, choropleth, etc.)
       "theme": "default",      // Color theme
       "title": "Chart Title",
       "showHeader": true,
+      // Choropleth-specific properties
+      "mapFeatures": "world-50m", // Geographical data source
+      "projectionType": "naturalEarth1", // Map projection
+      "projectionScale": 100,   // Map scale (50-200)
+      "matchBy": "id",          // Data matching method
+      "geoJsonUrl": "https://example.com/custom.geojson", // Custom GeoJSON URL
       "dataSource": {
-        "tableName": "sales_data",
-        "labelColumn": "month",
-        "valueColumn": "revenue"
+        "tableName": "geographic_data",
+        "labelColumn": "region_name",
+        "valueColumn": "metric_value"
       },
       "gridPosition": {
         "x": 0,                 // X position (grid units)
@@ -563,6 +570,7 @@ The dashboard is stored as a JSON object with the following structure:
 |---------|-------------|
 | `chartjs` | Chart.js library |
 | `d3` | D3.js library |
+| `nivo` | Nivo library (includes choropleth maps) |
 
 ### Chart Types
 
@@ -571,6 +579,119 @@ The dashboard is stored as a JSON object with the following structure:
 
 **D3.js:**
 - `bar`, `line`, `area`, `pie`, `donut`, `scatter`
+
+**Nivo:**
+- `line`, `bar`, `pie`, `choropleth`
+
+### Choropleth Map Configuration
+
+Choropleth maps visualize geographic data by coloring regions based on data values. Holograph supports choropleth maps through the Nivo library.
+
+#### Prerequisites
+
+1. **Install Nivo Geo Package:**
+   ```bash
+   npm install @nivo/geo
+   ```
+
+2. **Enable Nivo Library:**
+   Go to Settings → Chart Libraries and enable "Nivo"
+
+#### Creating a Choropleth Map
+
+1. **Add a Chart Zone:**
+   - Drag a chart from the palette
+   - Select "Nivo" as the rendering library
+   - Choose "Choropleth Map" as the chart type
+
+2. **Configure Map Data:**
+   - **Geographical Data Source:** Choose from preset maps or provide custom GeoJSON
+     - World (50m resolution)
+     - World (110m resolution)
+     - United States
+     - Europe
+     - Custom GeoJSON URL
+
+   - **Projection Settings:**
+     - **Projection Type:** Natural Earth 1, Mercator, Orthographic, Equirectangular, Albers USA
+     - **Scale:** Adjust map zoom level (50-200)
+
+   - **Data Matching:**
+     - Match your data to map regions by ID, Name, ISO Code, or custom function
+
+#### Data Format
+
+Your data should include region identifiers that match the geographical features:
+
+```javascript
+const choroplethData = [
+  { id: 'US-CA', label: 'California', value: 39538223 },
+  { id: 'US-TX', label: 'Texas', value: 29145505 },
+  { id: 'US-FL', label: 'Florida', value: 21538187 },
+  // ... more states
+];
+```
+
+#### Example Configuration
+
+```javascript
+const choroplethZone = {
+  id: "population-map",
+  componentType: "chart",
+  library: "nivo",
+  chartType: "choropleth",
+  theme: "default",
+  title: "US Population by State",
+  showHeader: true,
+  mapFeatures: "usa",                    // Use USA map
+  projectionType: "albersUsa",          // Albers USA projection
+  projectionScale: 100,                 // Map scale
+  matchBy: "id",                        // Match data by ID field
+  dataSource: {
+    tableName: "population_data",
+    labelColumn: "state_name",
+    valueColumn: "population"
+  },
+  gridPosition: { x: 0, y: 0, w: 12, h: 8 }
+};
+```
+
+#### Custom GeoJSON
+
+For custom maps, provide a GeoJSON URL:
+
+```javascript
+const customChoroplethZone = {
+  id: "custom-map",
+  componentType: "chart",
+  library: "nivo",
+  chartType: "choropleth",
+  theme: "ocean",
+  title: "Custom Region Map",
+  mapFeatures: "custom",
+  geoJsonUrl: "https://example.com/my-regions.geojson",
+  projectionType: "naturalEarth1",
+  projectionScale: 150,
+  matchBy: "properties.name",           // Match by GeoJSON properties
+  // ... other configuration
+};
+```
+
+#### Common Issues
+
+**Map Not Loading:**
+- Ensure `@nivo/geo` package is installed
+- Check that your GeoJSON URL is accessible
+- Verify data matching (IDs must match between your data and GeoJSON features)
+
+**Data Not Displaying:**
+- Ensure your data includes the correct identifier field (`id`, `name`, etc.)
+- Check that the `matchBy` setting matches your data structure
+- Verify that region identifiers exist in the geographical data
+
+**Performance Issues:**
+- Use appropriate resolution (50m for detailed maps, 110m for faster loading)
+- Consider data sampling for very large datasets
 
 ### Color Themes
 
