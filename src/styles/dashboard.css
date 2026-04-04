@@ -1296,6 +1296,190 @@ body {
   font-weight: 600;
 }
 
+/* ── PBI-style filter additions ── */
+
+.filter-bar-mode-tabs {
+  display: flex;
+  gap: 0;
+  margin: 8px 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.filter-bar-mode-tab {
+  flex: 1;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #f9fafb;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #6b7280;
+}
+
+.filter-bar-mode-tab:first-child {
+  border-right: 1px solid #d1d5db;
+}
+
+.filter-bar-mode-tab.active {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.filter-bar-mode-tab:hover:not(.active) {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.filter-bar-filter-type {
+  display: flex;
+  gap: 0;
+  margin-bottom: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.filter-bar-filter-type-btn {
+  flex: 1;
+  padding: 5px 10px;
+  font-size: 12px;
+  background: #f9fafb;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #6b7280;
+}
+
+.filter-bar-filter-type-btn:first-child {
+  border-right: 1px solid #d1d5db;
+}
+
+.filter-bar-filter-type-btn.active {
+  background: #1e40af;
+  color: #ffffff;
+}
+
+.filter-bar-filter-type-btn:hover:not(.active) {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.filter-bar-search-input {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-bottom: 8px;
+  box-sizing: border-box;
+  color: #1f2937;
+}
+
+.filter-bar-search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.filter-bar-select-all-row {
+  padding: 4px 0 6px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 4px;
+}
+
+.filter-bar-basic-mode .filter-bar-values-list {
+  max-height: 140px;
+  overflow-y: auto;
+  margin-top: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.filter-bar-advanced-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-bar-condition-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.filter-bar-condition-op {
+  flex: 1;
+  padding: 7px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 12px;
+  background: #fff;
+  color: #1f2937;
+  min-width: 0;
+}
+
+.filter-bar-condition-op:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.filter-bar-condition-value {
+  flex: 1;
+  padding: 7px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 12px;
+  background: #fff;
+  color: #1f2937;
+  min-width: 0;
+}
+
+.filter-bar-condition-value:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.filter-bar-logic-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  align-self: flex-start;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.filter-bar-logic-btn {
+  padding: 4px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #f9fafb;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #6b7280;
+}
+
+.filter-bar-logic-btn:first-child {
+  border-right: 1px solid #d1d5db;
+}
+
+.filter-bar-logic-btn.active {
+  background: #6366f1;
+  color: #ffffff;
+}
+
+.filter-bar-logic-btn:hover:not(.active) {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
 /* ============================================
    Buttons
    ============================================ */

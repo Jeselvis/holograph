@@ -54,28 +54,39 @@ const DashboardEditor = ({ dashboard, onDashboardUpdate, enabledLibraries }) => 
   }, [dashboard.zones, configureFilters]);
 
   // Handle layout change from react-grid-layout
+  // NOTE: react-grid-layout v2 calls onLayoutChange inside a useEffect([layout, onLayoutChange]),
+  // so this fires on every render where layout or this callback changes — not just on user
+  // drag/resize. Guard against unnecessary updates to prevent an infinite re-render cascade
+  // that breaks filter propagation.
   const handleLayoutChange = useCallback(
     (layout) => {
+      let hasChanges = false;
       const updatedZones = dashboard.zones.map((zone) => {
         const layoutItem = layout.find((item) => item.i === zone.id);
         if (layoutItem) {
-          return {
-            ...zone,
-            gridPosition: {
-              x: layoutItem.x,
-              y: layoutItem.y,
-              w: layoutItem.w,
-              h: layoutItem.h,
-            },
-          };
+          const { x, y, w, h } = zone.gridPosition;
+          if (layoutItem.x !== x || layoutItem.y !== y || layoutItem.w !== w || layoutItem.h !== h) {
+            hasChanges = true;
+            return {
+              ...zone,
+              gridPosition: {
+                x: layoutItem.x,
+                y: layoutItem.y,
+                w: layoutItem.w,
+                h: layoutItem.h,
+              },
+            };
+          }
         }
         return zone;
       });
 
-      onDashboardUpdate({
-        ...dashboard,
-        zones: updatedZones,
-      });
+      if (hasChanges) {
+        onDashboardUpdate({
+          ...dashboard,
+          zones: updatedZones,
+        });
+      }
     },
     [dashboard, onDashboardUpdate]
   );

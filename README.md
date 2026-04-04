@@ -5,6 +5,11 @@ A zero-VM dashboard application with pluggable chart adapters (D3.js and Chart.j
 ## Table of Contents
 
 - [Installation](#installation)
+- [Using the Dashboard Viewer in Another React App](#using-the-dashboard-viewer-in-another-react-app)
+  - [Props](#props)
+  - [With Filters](#with-filters)
+  - [Filter Types](#filter-types)
+  - [Filter Operators](#filter-operators)
 - [Filters for Consumer/Reading](#filters-for-consumerreading)
   - [Global Filter API](#global-filter-api)
   - [React Component Integration](#react-component-integration)
@@ -99,33 +104,128 @@ function App() {
 
 ### Props
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `dashboard` | object | The dashboard schema object (required) |
-| `filters` | object | Optional initial filters to apply |
-| `onFilterChange` | function | Callback when filters change |
-| `webhookConfig` | object | Configuration for data loading webhooks |
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `dashboard` | object | — | The dashboard schema object (required) |
+| `data` | object | `{}` | Optional data keyed by zone ID; bypasses the data service when provided |
+| `filters` | object | `{}` | Filter definitions to apply to all charts (see [Filter Types](#filter-types)) |
+| `onFilterChange` | function | — | Called with the current filter object whenever filters change |
+| `className` | string | `''` | Additional CSS class applied to the root element |
 
 ### With Filters
+
+Pass a `filters` object to the viewer. Keys are column names; values are filter definitions. The viewer keeps its internal state in sync whenever the prop changes, so you can drive it from your own state.
 
 ```jsx
 import { DashboardViewer } from '@holograph/dashboard-viewer';
 
 function App() {
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState({
+    region: {
+      mode: 'basic',
+      filterType: 'include',
+      values: ['North', 'South'],
+    },
+  });
 
   return (
-    <DashboardViewer 
+    <DashboardViewer
       dashboard={myDashboard}
       filters={filters}
-      onFilterChange={(newFilters) => {
-        setFilters(newFilters);
-        // Optionally sync with parent app
-      }}
+      onFilterChange={setFilters}
     />
   );
 }
 ```
+
+### Filter Types
+
+There are three filter formats. All three can be mixed in the same `filters` object.
+
+#### Basic filter
+
+Show only rows where a column's value is in (or not in) a fixed list — equivalent to Power BI's "Basic filtering".
+
+```js
+// Include: only show rows where region is North or South
+region: {
+  mode: 'basic',
+  filterType: 'include',   // 'include' | 'exclude'
+  values: ['North', 'South'],
+}
+
+// Exclude: hide rows where region is West
+region: {
+  mode: 'basic',
+  filterType: 'exclude',
+  values: ['West'],
+}
+```
+
+#### Advanced filter
+
+Apply up to two operator-based conditions joined by `and` / `or` — equivalent to Power BI's "Advanced filtering".
+
+```js
+// revenue between 10 000 and 30 000
+revenue: {
+  mode: 'advanced',
+  logicalOperator: 'and',   // 'and' | 'or'
+  conditions: [
+    { operator: 'gte', value: '10000' },
+    { operator: 'lte', value: '30000' },
+  ],
+}
+
+// product name starts with "Widget" OR is blank
+product: {
+  mode: 'advanced',
+  logicalOperator: 'or',
+  conditions: [
+    { operator: 'startsWith', value: 'Widget' },
+    { operator: 'isBlank',    value: '' },
+  ],
+}
+```
+
+#### Legacy array format
+
+The original simple include-list shorthand is still supported:
+
+```js
+// Equivalent to mode:'basic', filterType:'include', values:[…]
+region: ['North', 'South']
+```
+
+### Filter Operators
+
+Operators are inferred from column type (numeric columns automatically use the number set in the editor's FilterBar, but you can use either set in prop-driven filters).
+
+**Text operators**
+
+| Operator | Description |
+|----------|-------------|
+| `is` | Exact match (case-insensitive) |
+| `isNot` | Does not match |
+| `contains` | Value contains the string |
+| `doesNotContain` | Value does not contain the string |
+| `startsWith` | Value starts with the string |
+| `endsWith` | Value ends with the string |
+| `isBlank` | Value is null, undefined, or empty string |
+| `isNotBlank` | Value is not blank |
+
+**Number operators**
+
+| Operator | Description |
+|----------|-------------|
+| `eq` | Equal to |
+| `neq` | Not equal to |
+| `gt` | Greater than |
+| `gte` | Greater than or equal to |
+| `lt` | Less than |
+| `lte` | Less than or equal to |
+| `isBlank` | Value is null or undefined |
+| `isNotBlank` | Value is not null or undefined |
 
 ### With External Data Source
 
@@ -169,16 +269,38 @@ When Holograph loads, it exposes a global `window.Holograph` object with filter 
 
 #### Filter Object Structure
 
-Filters are passed as objects where keys are column names and values are arrays of allowed values:
+Filters are passed as objects where keys are column names. Each value is a filter definition — see [Filter Types](#filter-types) for the full format. The simple array shorthand is also accepted for backwards compatibility.
 
 ```javascript
-// Single filter
+// Simple include list (legacy shorthand)
 { region: ['North', 'South'] }
 
-// Multiple filters
-{ 
-  region: ['North', 'South'], 
-  quarter: ['Q1', 'Q2'] 
+// Basic include/exclude (Power BI style)
+{
+  region: { mode: 'basic', filterType: 'include', values: ['North', 'South'] },
+  quarter: { mode: 'basic', filterType: 'exclude', values: ['Q4'] },
+}
+
+// Advanced operator conditions
+{
+  revenue: {
+    mode: 'advanced',
+    logicalOperator: 'and',
+    conditions: [
+      { operator: 'gte', value: '10000' },
+      { operator: 'lt',  value: '50000' },
+    ],
+  },
+}
+
+// Multiple formats can be mixed in the same object
+{
+  region:  { mode: 'basic', filterType: 'include', values: ['North'] },
+  revenue: { mode: 'advanced', logicalOperator: 'or', conditions: [
+    { operator: 'gt', value: '20000' },
+    { operator: 'isBlank', value: '' },
+  ]},
+  quarter: ['Q1', 'Q2'],   // legacy array still works
 }
 ```
 
@@ -234,20 +356,33 @@ function Dashboard() {
 #### Setting Filters from Console
 
 ```javascript
-// Filter by region
+// Basic include (legacy shorthand still works)
 window.Holograph.setFilters({ region: ['North', 'South'] });
 
-// Filter by multiple columns
-window.Holograph.setFilters({ 
-  region: ['North'], 
-  quarter: ['Q1', 'Q2'] 
+// Basic include using full format
+window.Holograph.setFilters({
+  region: { mode: 'basic', filterType: 'include', values: ['North', 'South'] },
 });
 
-// Add another filter
-window.Holograph.setFilter('month', ['Jan', 'Feb']);
+// Exclude specific values
+window.Holograph.setFilter('region', {
+  mode: 'basic',
+  filterType: 'exclude',
+  values: ['West'],
+});
+
+// Advanced: revenue between two values
+window.Holograph.setFilter('revenue', {
+  mode: 'advanced',
+  logicalOperator: 'and',
+  conditions: [
+    { operator: 'gte', value: '10000' },
+    { operator: 'lte', value: '30000' },
+  ],
+});
 
 // Clear a specific filter
-window.Holograph.clearFilter('quarter');
+window.Holograph.clearFilter('region');
 
 // Clear all filters
 window.Holograph.clearAllFilters();
@@ -261,8 +396,8 @@ if (window.Holograph.hasFilters()) {
   console.log('Active filters:', window.Holograph.getFilters());
 }
 
-// Filter with empty array shows all data (removes filter)
-window.Holograph.setFilter('region', []);
+// Clear a filter by setting an empty values list
+window.Holograph.setFilter('region', { mode: 'basic', filterType: 'include', values: [] });
 ```
 
 ---
@@ -744,15 +879,18 @@ import {
 ### Data Service
 
 ```javascript
-import { 
-  fetchChartData,           // Fetch data for charts
-  fetchTableData,           // Fetch raw table data
-  getAvailableTables,       // List available tables
-  getTableColumns,          // Get columns for a table
-  initializeDataService,    // Initialize the service
-  getUniqueValuesForColumn  // Get unique values for filtering
+import {
+  fetchChartData,                // Fetch data for charts
+  fetchTableData,                // Fetch raw table data
+  getAvailableTables,            // List available tables
+  getTableColumns,               // Get columns for a table
+  initializeDataService,         // Initialize the service
+  getUniqueValuesForColumn,      // Get unique values for a column across all tables
+  getUniqueValuesForTableColumn, // Get unique values for a column within one table
 } from './services/dataService';
 ```
+
+Both `fetchChartData` and `fetchTableData` accept a `filters` argument in any of the three formats described in [Filter Types](#filter-types).
 
 ---
 

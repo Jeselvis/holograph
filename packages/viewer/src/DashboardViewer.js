@@ -361,55 +361,50 @@ const DashboardViewer = ({
 
   return (
     <div className={`dashboard-viewer ${className}`} ref={containerRef}>
-    </div>
-  );
-};
-        {dashboard.zones?.length === 0 ? (
-          <div className="viewer-empty-state">
-            <p>No charts to display</p>
-          </div>
-        ) : (
-          <GridLayout
-            className="layout"
-            layout={layout}
-            cols={cols}
-            rowHeight={rowHeight}
-            margin={margin}
-            width={gridWidth}
-            draggable={false}
-            isDraggable={false}
-            isResizable={false}
-            compactType="vertical"
-            preventCollision={false}
-            useCSSTransforms={true}
-            containerPadding={[10, 10]}
-          >
-            {dashboard.zones?.map((zone) => (
-              <div
-                key={zone.id}
-                className="viewer-zone-card"
-                data-component-type={zone.componentType === COMPONENT_TYPES.TABLE ? 'table' : 'chart'}
-                data-library={getLibraryAttr(zone.library)}
-                data-theme={zone.theme || 'default'}
-              >
-                {(zone.showHeader !== false) && (
-                  <div className="viewer-zone-header">
-                    <h3 className="viewer-zone-title">{zone.title}</h3>
-                  </div>
-                )}
-                <div className="viewer-zone-chart-container">
-                  <ZoneContent
-                    zone={zone}
-                    filters={currentFilters}
-                    onFilterChange={handleFilterChange}
-                    zoneData={data[zone.id]}
-                  />
+      {dashboard.zones?.length === 0 ? (
+        <div className="viewer-empty-state">
+          <p>No charts to display</p>
+        </div>
+      ) : (
+        <GridLayout
+          className="layout"
+          layout={layout}
+          cols={cols}
+          rowHeight={rowHeight}
+          margin={margin}
+          width={gridWidth}
+          isDraggable={false}
+          isResizable={false}
+          compactType="vertical"
+          preventCollision={false}
+          useCSSTransforms={true}
+          containerPadding={[10, 10]}
+        >
+          {dashboard.zones?.map((zone) => (
+            <div
+              key={zone.id}
+              className="viewer-zone-card"
+              data-component-type={zone.componentType === COMPONENT_TYPES.TABLE ? 'table' : 'chart'}
+              data-library={getLibraryAttr(zone.library)}
+              data-theme={zone.theme || 'default'}
+            >
+              {(zone.showHeader !== false) && (
+                <div className="viewer-zone-header">
+                  <h3 className="viewer-zone-title">{zone.title}</h3>
                 </div>
+              )}
+              <div className="viewer-zone-chart-container">
+                <ZoneContent
+                  zone={zone}
+                  filters={currentFilters}
+                  onFilterChange={handleFilterChange}
+                  zoneData={data[zone.id]}
+                />
               </div>
-            ))}
-          </GridLayout>
-        )}
-      </div>
+            </div>
+          ))}
+        </GridLayout>
+      )}
     </div>
   );
 };

@@ -125,10 +125,10 @@ export const getUniqueValuesForColumn = (columnName) => {
   if (uniqueValuesCache[columnName]) {
     return uniqueValuesCache[columnName];
   }
-  
+
   const values = new Set();
   const tables = getCachedTables();
-  
+
   tables.forEach((tableName) => {
     const cols = getCachedColumns(tableName);
     if (cols.includes(columnName)) {
@@ -140,10 +140,102 @@ export const getUniqueValuesForColumn = (columnName) => {
       });
     }
   });
-  
+
   const result = Array.from(values).sort();
   uniqueValuesCache[columnName] = result;
   return result;
+};
+
+/**
+ * Get unique values for a specific column within a single table
+ * @param {string} tableName - Name of the table
+ * @param {string} columnName - Name of the column
+ * @returns {Array} Array of unique values sorted appropriately
+ */
+export const getUniqueValuesForTableColumn = (tableName, columnName) => {
+  const tableData = MOCK_DATA_TABLES[tableName];
+  if (!tableData) return [];
+  const values = new Set();
+  tableData.forEach((row) => {
+    if (row[columnName] !== undefined) values.add(row[columnName]);
+  });
+  return Array.from(values).sort((a, b) => {
+    if (typeof a === 'number' && typeof b === 'number') return a - b;
+    return String(a).localeCompare(String(b));
+  });
+};
+
+/**
+ * Evaluate a single advanced filter condition against a row value
+ * @param {*} rowValue - The row's value for the filtered column
+ * @param {{ operator: string, value: string }} condition - Condition to evaluate
+ * @returns {boolean}
+ */
+const applyCondition = (rowValue, condition) => {
+  const { operator, value } = condition;
+  const str = String(rowValue ?? '').toLowerCase();
+  const cond = String(value ?? '').toLowerCase();
+  const numRow = parseFloat(rowValue);
+  const numCond = parseFloat(value);
+
+  switch (operator) {
+    case 'is':             return str === cond;
+    case 'isNot':          return str !== cond;
+    case 'contains':       return str.includes(cond);
+    case 'doesNotContain': return !str.includes(cond);
+    case 'startsWith':     return str.startsWith(cond);
+    case 'endsWith':       return str.endsWith(cond);
+    case 'isBlank':        return rowValue === null || rowValue === undefined || rowValue === '';
+    case 'isNotBlank':     return rowValue !== null && rowValue !== undefined && rowValue !== '';
+    case 'eq':             return numRow === numCond;
+    case 'neq':            return numRow !== numCond;
+    case 'gt':             return numRow > numCond;
+    case 'gte':            return numRow >= numCond;
+    case 'lt':             return numRow < numCond;
+    case 'lte':            return numRow <= numCond;
+    default:               return true;
+  }
+};
+
+const isNoValueOp = (op) => op === 'isBlank' || op === 'isNotBlank';
+
+/**
+ * Test whether a single row passes a filter definition for one column.
+ * Handles both the legacy array format and the new { mode, ... } format.
+ * @param {Object} row - Data row
+ * @param {string} columnName - Column being filtered
+ * @param {Array|Object} filterDef - Filter definition
+ * @returns {boolean}
+ */
+const applyFilterToRow = (row, columnName, filterDef) => {
+  const rowValue = row[columnName];
+
+  // Legacy format: plain array = include filter
+  if (Array.isArray(filterDef)) {
+    if (filterDef.length === 0) return true;
+    return filterDef.includes(rowValue);
+  }
+
+  if (!filterDef || typeof filterDef !== 'object') return true;
+
+  const { mode, filterType, values, logicalOperator, conditions } = filterDef;
+
+  if (mode === 'basic') {
+    if (!values || values.length === 0) return true;
+    const included = values.includes(rowValue);
+    return filterType === 'exclude' ? !included : included;
+  }
+
+  if (mode === 'advanced') {
+    const active = (conditions || []).filter(
+      (c) => isNoValueOp(c.operator) || (c.value !== '' && c.value !== null && c.value !== undefined)
+    );
+    if (active.length === 0) return true;
+    const results = active.map((c) => applyCondition(rowValue, c));
+    return logicalOperator === 'or' ? results.some(Boolean) : results.every(Boolean);
+  }
+
+  return true;
 };
 
 /**
@@ -169,20 +261,9 @@ export const fetchChartData = async (tableName, labelColumn, valueColumn, filter
   let filteredData = tableData;
   if (filters && Object.keys(filters).length > 0) {
     filteredData = tableData.filter((row) => {
-      // Check each filter column
-      for (const [columnName, filterValues] of Object.entries(filters)) {
-        // Skip empty filters
-        if (!filterValues || !Array.isArray(filterValues) || filterValues.length === 0) {
-          continue;
-        }
-        
-        // Get the row value for this column
-        const rowValue = row[columnName];
-        
-        // If the row's column value is not in the filter values, exclude it
-        if (rowValue !== undefined && !filterValues.includes(rowValue)) {
-          return false;
-        }
+      for (const [columnName, filterDef] of Object.entries(filters)) {
+        if (!filterDef) continue;
+        if (!applyFilterToRow(row, columnName, filterDef)) return false;
       }
       return true;
     });
@@ -217,20 +298,9 @@ export const fetchTableData = async (tableName, columns = null, filters = null) 
   let filteredData = tableData;
   if (filters && Object.keys(filters).length > 0) {
     filteredData = tableData.filter((row) => {
-      // Check each filter column
-      for (const [columnName, filterValues] of Object.entries(filters)) {
-        // Skip empty filters
-        if (!filterValues || !Array.isArray(filterValues) || filterValues.length === 0) {
-          continue;
-        }
-        
-        // Get the row value for this column
-        const rowValue = row[columnName];
-        
-        // If the row's column value is not in the filter values, exclude it
-        if (rowValue !== undefined && !filterValues.includes(rowValue)) {
-          return false;
-        }
+      for (const [columnName, filterDef] of Object.entries(filters)) {
+        if (!filterDef) continue;
+        if (!applyFilterToRow(row, columnName, filterDef)) return false;
       }
       return true;
     });
@@ -273,4 +343,5 @@ export default {
   getCachedTables,
   getCachedColumns,
   getUniqueValuesForColumn,
+  getUniqueValuesForTableColumn,
 };
