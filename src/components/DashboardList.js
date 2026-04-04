@@ -9,6 +9,27 @@ import React from 'react';
 import BigLogo from '../big logo.png';
 
 const DashboardList = ({ dashboards, onSelect, onCreateNew, onSettings, onDelete, onRefresh }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [deleteDashboardId, setDeleteDashboardId] = React.useState(null);
+
+  const handleDelete = (id) => {
+    setDeleteDashboardId(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteDashboardId) {
+      onDelete(deleteDashboardId);
+    }
+    setDeleteDialogOpen(false);
+    setDeleteDashboardId(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setDeleteDashboardId(null);
+  };
+
   return (
     <div className="dashboard-list-container">
       <div className="dashboard-list-logo">
@@ -33,7 +54,7 @@ const DashboardList = ({ dashboards, onSelect, onCreateNew, onSettings, onDelete
           </button>
         </div>
       </div>
-
+      
       {dashboards.length === 0 ? (
         <div className="dashboard-empty-state" style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <div className="dashboard-empty-state-icon">📊</div>
@@ -52,7 +73,7 @@ const DashboardList = ({ dashboards, onSelect, onCreateNew, onSettings, onDelete
                 className="dashboard-card-delete"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDelete(dashboard.id);
+                  handleDelete(dashboard.id);
                 }}
                 title="Delete dashboard"
               >
@@ -74,6 +95,24 @@ const DashboardList = ({ dashboards, onSelect, onCreateNew, onSettings, onDelete
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteDialogOpen && (
+        <div className="dashboard-delete-modal-overlay" onClick={handleCancelDelete}>
+          <div className="dashboard-delete-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete Dashboard</h3>
+            <p>Are you sure you want to delete this dashboard? This action cannot be undone.</p>
+            <div className="dashboard-delete-modal-actions">
+              <button className="btn btn-secondary" onClick={handleCancelDelete}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={handleConfirmDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
