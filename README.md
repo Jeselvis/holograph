@@ -989,30 +989,36 @@ Choropleth maps visualize geographic data by coloring regions based on data valu
 #### Creating a Choropleth Map
 
 1. **Add a Chart Zone:**
-   - Drag a chart from the palette
-   - Select "Nivo" as the rendering library
-   - Choose "Choropleth Map" as the chart type
+    - Drag a chart from the palette
+    - Select "Nivo" as the rendering library
+    - Choose "Choropleth Map" as the chart type
+    - **Demo data will display automatically** (US states population data)
 
 2. **Configure Map Data:**
-   - **Geographical Data Source:** Choose from preset maps or provide custom GeoJSON
-     - World (50m resolution)
-     - World (110m resolution)
-     - United States
-     - Europe
-     - Custom GeoJSON URL
+    - **Geographical Data Source:** Choose from preset maps or provide custom GeoJSON
+      - World (50m resolution)
+      - World (110m resolution)
+      - United States (default - shows US states)
+      - Europe
+      - Custom GeoJSON URL
 
-   - **Projection Settings:**
-     - **Projection Type:** Natural Earth 1, Mercator, Orthographic, Equirectangular, Albers USA
-     - **Scale:** Adjust map zoom level (50-200)
+    - **Projection Settings:**
+      - **Projection Type:** Natural Earth 1, Mercator, Orthographic, Equirectangular, Albers USA
+      - **Scale:** Adjust map zoom level (50-200)
 
-   - **Data Matching:**
-     - Match your data to map regions by ID, Name, ISO Code, or custom function
+    - **Data Matching:**
+      - Match your data to map regions by ID, Name, ISO Code, or custom function
+
+3. **Connect Your Data:**
+    - Select a data source table with region identifiers and values
+    - Demo data automatically disappears when you connect real data
 
 #### Data Format
 
-Your data should include region identifiers that match the geographical features:
+Your data should include region identifiers that match the geographical features. **Demo data (US states population) displays automatically until you connect a data source.**
 
 ```javascript
+// Example data format (same as demo data)
 const choroplethData = [
   { id: 'US-CA', label: 'California', value: 39538223 },
   { id: 'US-TX', label: 'Texas', value: 29145505 },

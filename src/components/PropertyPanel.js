@@ -12,6 +12,8 @@ import { getAvailableTables, getTableColumns } from '../services/dataService';
 
 const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
   const { id, componentType, library, title, dataSource, chartType, showHeader, legend, tooltip } = zoneConfig;
+
+
   const availableTables = getAvailableTables();
   const tableColumns = dataSource?.tableName ? getTableColumns(dataSource.tableName) : [];
 
@@ -39,6 +41,7 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
       [CHART_TYPES.NIVO_BAR]: 'Bar Chart',
       [CHART_TYPES.NIVO_PIE]: 'Pie Chart',
       [CHART_TYPES.NIVO_CHOROPLETH]: 'Choropleth Map',
+      [CHART_TYPES.CHARTJS_BUBBLEMAP]: 'Point Map',
     };
     return names[type] || type;
   };
@@ -295,6 +298,20 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
         ...tooltip,
         label: e.target.value,
       },
+    });
+  };
+
+  const handleLatColumnChange = (e) => {
+    onUpdate({
+      ...zoneConfig,
+      dataSource: { ...dataSource, latColumn: e.target.value },
+    });
+  };
+
+  const handleLngColumnChange = (e) => {
+    onUpdate({
+      ...zoneConfig,
+      dataSource: { ...dataSource, lngColumn: e.target.value },
     });
   };
 
@@ -662,7 +679,7 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
               <label className="property-label" style={{ fontSize: '12px', color: '#6b7280' }}>Geographical Data</label>
               <select
                 className="property-select"
-                value={zoneConfig.mapFeatures || 'world-50m'}
+                value={zoneConfig.mapFeatures || 'usa'}
                 onChange={(e) => onUpdate({
                   ...zoneConfig,
                   mapFeatures: e.target.value,
@@ -758,20 +775,68 @@ const PropertyPanel = ({ zoneConfig, onUpdate, onClose }) => {
               </p>
             </div>
 
-            <div className="property-info" style={{ marginTop: '16px' }}>
-              <strong>Data format:</strong>{' '}
-              {(!zoneConfig.matchBy || zoneConfig.matchBy === 'id') && (
-                <>Each data row needs an <code>id</code> field with the ISO&nbsp;A3 country code (e.g. <code>USA</code>, <code>GBR</code>, <code>DEU</code>).</>
-              )}
-              {zoneConfig.matchBy === 'properties.name' && (
-                <>Each data row needs an <code>id</code> field with the full country name (e.g. <code>United States of America</code>).</>
-              )}
-              {zoneConfig.matchBy === 'properties.iso_a3' && (
-                <>Each data row needs an <code>id</code> field with the ISO&nbsp;A3 code (e.g. <code>USA</code>, <code>GBR</code>, <code>DEU</code>).</>
-              )}
-              {zoneConfig.matchBy === 'custom' && (
-                <>Custom matching requires a data field that aligns with the chosen GeoJSON feature properties.</>
-              )}
+            {(() => {
+              const mapSrc  = zoneConfig.mapFeatures || 'usa';
+              const matchBy = zoneConfig.matchBy || 'id';
+              const isUsa   = mapSrc === 'usa';
+              let hint;
+              if (matchBy === 'id') {
+                hint = isUsa
+                  ? <>Each row needs an <code>id</code> field with a US state code (e.g. <code>US-CA</code>, <code>US-TX</code>).</>
+                  : <>Each row needs an <code>id</code> field with the ISO&nbsp;A3 country code (e.g. <code>USA</code>, <code>GBR</code>, <code>DEU</code>).</>;
+              } else if (matchBy === 'properties.name') {
+                hint = isUsa
+                  ? <>Each row needs an <code>id</code> field with the full state name (e.g. <code>California</code>).</>
+                  : <>Each row needs an <code>id</code> field with the full country name (e.g. <code>United States of America</code>).</>;
+              } else if (matchBy === 'properties.iso_a3') {
+                hint = <>Each row needs an <code>id</code> field with the ISO&nbsp;A3 code (e.g. <code>USA</code>, <code>GBR</code>).</>;
+              } else {
+                hint = <>Custom matching — ensure your data field aligns with the chosen GeoJSON feature property.</>;
+              }
+              return (
+                <div className="property-info" style={{ marginTop: '16px' }}>
+                  <strong>Data format:</strong>{' '}{hint}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* Bubble map (Point Map) lat/lng column selectors */}
+        {componentType === COMPONENT_TYPES.CHART && chartType === CHART_TYPES.CHARTJS_BUBBLEMAP && dataSource?.tableName && (
+          <div className="property-field-group">
+            <label className="property-label">Map Columns</label>
+
+            <div className="property-field-group" style={{ marginTop: '8px' }}>
+              <label className="property-label" style={{ fontSize: '12px', color: '#6b7280' }}>Latitude Column</label>
+              <select
+                className="property-select"
+                value={dataSource?.latColumn || ''}
+                onChange={handleLatColumnChange}
+              >
+                <option value="">Select column...</option>
+                {tableColumns.map((col) => (
+                  <option key={col} value={col}>{col}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="property-field-group" style={{ marginTop: '8px' }}>
+              <label className="property-label" style={{ fontSize: '12px', color: '#6b7280' }}>Longitude Column</label>
+              <select
+                className="property-select"
+                value={dataSource?.lngColumn || ''}
+                onChange={handleLngColumnChange}
+              >
+                <option value="">Select column...</option>
+                {tableColumns.map((col) => (
+                  <option key={col} value={col}>{col}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="property-info" style={{ marginTop: '12px' }}>
+              <strong>Data format:</strong> Label Column = tooltip name (e.g. <code>city</code>), Lat/Lng = decimal degrees, Value Column = bubble size.
             </div>
           </div>
         )}

@@ -18,7 +18,7 @@ import RichTextComponent from './RichTextComponent';
 import PropertyPanel from './PropertyPanel';
 import ChartPalette from './ChartPalette';
 import FilterBar from './FilterBar';
-import { CHART_LIBRARIES, COMPONENT_TYPES, createZoneConfig } from '../types/schema';
+import { CHART_LIBRARIES, CHART_TYPES, COMPONENT_TYPES, createZoneConfig } from '../types/schema';
 import { useFilters } from '../hooks/useFilters';
 import { getTableColumns, initializeDataService } from '../services/dataService';
 
@@ -189,13 +189,29 @@ const DashboardEditor = ({ dashboard, onDashboardUpdate, enabledLibraries }) => 
           h: 4,
         };
 
-        onDashboardUpdate({
+        // Choropleth: pre-populate with the us_states sample table
+        if (chartOption.chartType === CHART_TYPES.NIVO_CHOROPLETH) {
+          newZone.dataSource = { tableName: 'us_states', labelColumn: 'state_code', valueColumn: 'sales_index' };
+        }
+        // Point map: pre-populate with the us_cities sample table
+        if (chartOption.chartType === CHART_TYPES.CHARTJS_BUBBLEMAP) {
+          newZone.dataSource = { tableName: 'us_cities', labelColumn: 'city', latColumn: 'lat', lngColumn: 'lng', valueColumn: 'population' };
+          newZone.title = 'City Map';
+        }
+
+        const updatedDashboard = {
           ...dashboard,
           zones: [...dashboard.zones, newZone],
-        });
+        };
+
+        onDashboardUpdate(updatedDashboard);
 
         // Open property panel for the new zone
-        setTimeout(() => setSelectedZone(newZone), 100);
+        setTimeout(() => {
+          // Find the zone in the updated dashboard to ensure we have the latest version
+          const zoneInDashboard = updatedDashboard.zones.find(z => z.id === newZone.id);
+          setSelectedZone(zoneInDashboard || newZone);
+        }, 100);
       } catch (err) {
         console.error('Error adding chart:', err);
       }
@@ -229,6 +245,16 @@ const DashboardEditor = ({ dashboard, onDashboardUpdate, enabledLibraries }) => 
         w: 4,
         h: 4,
       };
+
+      // Choropleth: pre-populate with the us_states sample table
+      if (chartOption.chartType === CHART_TYPES.NIVO_CHOROPLETH) {
+        newZone.dataSource = { tableName: 'us_states', labelColumn: 'state_code', valueColumn: 'sales_index' };
+      }
+      // Point map: pre-populate with the us_cities sample table
+      if (chartOption.chartType === CHART_TYPES.CHARTJS_BUBBLEMAP) {
+        newZone.dataSource = { tableName: 'us_cities', labelColumn: 'city', latColumn: 'lat', lngColumn: 'lng', valueColumn: 'population' };
+        newZone.title = 'City Map';
+      }
 
       onDashboardUpdate({
         ...dashboard,
@@ -322,7 +348,9 @@ const DashboardEditor = ({ dashboard, onDashboardUpdate, enabledLibraries }) => 
     if (zone.componentType === COMPONENT_TYPES.RICHTEXT) {
       return 'zone-badge richtext';
     }
-    return zone.library === CHART_LIBRARIES.D3 ? 'zone-badge d3' : 'zone-badge chartjs';
+    if (zone.library === CHART_LIBRARIES.NIVO) return 'zone-badge nivo';
+    if (zone.library === CHART_LIBRARIES.D3) return 'zone-badge d3';
+    return 'zone-badge chartjs';
   };
 
   const getZoneBadgeText = (zone) => {
@@ -335,7 +363,9 @@ const DashboardEditor = ({ dashboard, onDashboardUpdate, enabledLibraries }) => 
     if (zone.componentType === COMPONENT_TYPES.RICHTEXT) {
       return 'Text';
     }
-    return zone.library === CHART_LIBRARIES.D3 ? 'D3.js' : 'Chart.js';
+    if (zone.library === CHART_LIBRARIES.NIVO) return 'Nivo';
+    if (zone.library === CHART_LIBRARIES.D3) return 'D3.js';
+    return 'Chart.js';
   };
 
   return (

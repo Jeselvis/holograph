@@ -500,6 +500,11 @@ body {
   color: #1e40af;
 }
 
+.zone-badge.nivo {
+  background-color: #ede9fe;
+  color: #5b21b6;
+}
+
 .zone-badge.table {
   background-color: #e0e7ff;
   color: #3730a3;

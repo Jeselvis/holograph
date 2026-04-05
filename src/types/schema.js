@@ -46,6 +46,8 @@ NIVO_LINE: 'nivo_line',
 NIVO_BAR: 'nivo_bar',
 NIVO_PIE: 'nivo_pie',
 NIVO_CHOROPLETH: 'nivo_choropleth',
+// Chart.js geo types
+CHARTJS_BUBBLEMAP: 'chartjs_bubblemap',
 };
 
 // Map chart types to their libraries
@@ -66,6 +68,7 @@ export const CHART_TYPE_LIBRARY = {
 [CHART_TYPES.NIVO_BAR]: CHART_LIBRARIES.NIVO,
 [CHART_TYPES.NIVO_PIE]: CHART_LIBRARIES.NIVO,
 [CHART_TYPES.NIVO_CHOROPLETH]: CHART_LIBRARIES.NIVO,
+[CHART_TYPES.CHARTJS_BUBBLEMAP]: CHART_LIBRARIES.CHARTJS,
 };
 
 // Default chart types per library
@@ -147,8 +150,8 @@ export const LEGEND_POSITIONS = {
 export const createZoneConfig = (id) => ({
   id,
   componentType: COMPONENT_TYPES.CHART,
-  library: CHART_LIBRARIES.CHARTJS,
-  chartType: CHART_TYPES.CHARTJS_LINE,
+  library: null, // Will be set by the chart option
+  chartType: null, // Will be set by the chart option
   theme: COLOR_THEMES.DEFAULT,
   title: 'New Chart',
   showHeader: true,

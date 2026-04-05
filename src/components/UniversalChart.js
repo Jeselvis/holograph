@@ -11,7 +11,7 @@ import React, { useState, useEffect, useRef, useCallback, useLayoutEffect } from
 import D3Adapter from '../adapters/D3Adapter';
 import ChartJsAdapter from '../adapters/ChartJsAdapter';
 import NivoAdapter from '../adapters/NivoAdapter';
-import { fetchChartData } from '../services/dataService';
+import { fetchChartData, fetchTableData } from '../services/dataService';
 import { CHART_LIBRARIES, CHART_TYPES, DEFAULT_CHART_TYPE } from '../types/schema';
 
 const UniversalChart = ({ config, width, height, filters = null }) => {
@@ -76,12 +76,31 @@ const UniversalChart = ({ config, width, height, filters = null }) => {
       setError(null);
 
       try {
-        const data = await fetchChartData(
-          dataSource.tableName,
-          dataSource.labelColumn,
-          dataSource.valueColumn,
-          filters
-        );
+        // If no data source is configured, pass empty array (adapters show demo data)
+        if (!dataSource?.tableName) {
+          setChartData([]);
+          setLoading(false);
+          return;
+        }
+
+        // Bubble map needs raw table rows (lat, lng, value, label)
+        let data;
+        if (effectiveChartType === CHART_TYPES.CHARTJS_BUBBLEMAP) {
+          const cols = [
+            dataSource.labelColumn,
+            dataSource.latColumn,
+            dataSource.lngColumn,
+            dataSource.valueColumn,
+          ].filter(Boolean);
+          data = await fetchTableData(dataSource.tableName, cols.length ? cols : null, filters);
+        } else {
+          data = await fetchChartData(
+            dataSource.tableName,
+            dataSource.labelColumn,
+            dataSource.valueColumn,
+            filters
+          );
+        }
 
         if (isMounted) {
           setChartData(data);
@@ -97,14 +116,12 @@ const UniversalChart = ({ config, width, height, filters = null }) => {
       }
     };
 
-    if (dataSource?.tableName) {
-      loadData();
-    }
+    loadData();
 
     return () => {
       isMounted = false;
     };
-  }, [dataSource?.tableName, dataSource?.labelColumn, dataSource?.valueColumn, JSON.stringify(filters)]);
+  }, [dataSource?.tableName, dataSource?.labelColumn, dataSource?.valueColumn, dataSource?.latColumn, dataSource?.lngColumn, JSON.stringify(filters)]);
 
   // Memoize the adapter selection based on library type
   const ChartAdapter = useCallback(() => {
@@ -167,7 +184,10 @@ const UniversalChart = ({ config, width, height, filters = null }) => {
   }
 
   // Empty data state
-  if (!chartData || chartData.length === 0) {
+  // Choropleth and bubble map show demo data in their adapters when data is empty
+  const isChoropleth = effectiveChartType === CHART_TYPES.NIVO_CHOROPLETH;
+  const isBubbleMap = effectiveChartType === CHART_TYPES.CHARTJS_BUBBLEMAP;
+  if (!isChoropleth && !isBubbleMap && (!chartData || chartData.length === 0)) {
     return (
       <div ref={containerRef} style={{ ...containerBaseStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9fafb', borderRadius: '8px', color: '#6b7280' }}>
         <div style={{ textAlign: 'center' }}>

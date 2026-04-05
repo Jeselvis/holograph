@@ -229,6 +229,21 @@ const CHART_OPTIONS = [
   ),
   description: 'Geographic heat map',
 },
+{
+  id: 'chartjs-bubblemap',
+  library: CHART_LIBRARIES.CHARTJS,
+  chartType: CHART_TYPES.CHARTJS_BUBBLEMAP,
+  title: 'Point Map',
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M2 10 L5 6 L10 4 L15 6 L22 10 L19 13 L14 15 L10 11 L6 15 L3 13 Z" />
+      <circle cx="8" cy="11" r="2" fill="currentColor" />
+      <circle cx="15" cy="9" r="1.5" fill="currentColor" />
+      <circle cx="12" cy="13" r="1" fill="currentColor" />
+    </svg>
+  ),
+  description: 'Geo point bubble map',
+},
   // Table component
   {
     id: 'table',

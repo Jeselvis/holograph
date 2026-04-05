@@ -26,12 +26,52 @@ const DEFAULT_PALETTE = [
   '#6366f1', // indigo
 ];
 
-// Nivo chart type mapping
+// Demo data for choropleth maps (US states with sample values)
+const DEMO_CHOROPLETH_DATA = [
+  { id: 'US-CA', label: 'California', value: 39538223 },
+  { id: 'US-TX', label: 'Texas', value: 29145505 },
+  { id: 'US-FL', label: 'Florida', value: 21538187 },
+  { id: 'US-NY', label: 'New York', value: 20201249 },
+  { id: 'US-PA', label: 'Pennsylvania', value: 13002700 },
+  { id: 'US-IL', label: 'Illinois', value: 12812508 },
+  { id: 'US-OH', label: 'Ohio', value: 11799448 },
+  { id: 'US-GA', label: 'Georgia', value: 10711908 },
+  { id: 'US-NC', label: 'North Carolina', value: 10439388 },
+  { id: 'US-MI', label: 'Michigan', value: 10037773 },
+  { id: 'US-NJ', label: 'New Jersey', value: 9288994 },
+  { id: 'US-VA', label: 'Virginia', value: 8631393 },
+  { id: 'US-WA', label: 'Washington', value: 7693612 },
+  { id: 'US-AZ', label: 'Arizona', value: 7276316 },
+  { id: 'US-MA', label: 'Massachusetts', value: 6981974 },
+  { id: 'US-TN', label: 'Tennessee', value: 6910840 },
+  { id: 'US-IN', label: 'Indiana', value: 6785528 },
+  { id: 'US-MO', label: 'Missouri', value: 6196540 },
+  { id: 'US-MD', label: 'Maryland', value: 6177224 },
+  { id: 'US-WI', label: 'Wisconsin', value: 5893718 },
+];
+
+// Nivo chart component mapping (by our chart type constants)
 const NIVO_CHART_COMPONENTS = {
   [CHART_TYPES.NIVO_LINE]: ResponsiveLine,
   [CHART_TYPES.NIVO_BAR]: ResponsiveBar,
   [CHART_TYPES.NIVO_PIE]: ResponsivePie,
   [CHART_TYPES.NIVO_CHOROPLETH]: ResponsiveChoropleth,
+};
+
+// Map nivo chart types to components
+const getNivoChartComponent = (nivoChartType) => {
+  switch (nivoChartType) {
+    case NIVO_CHART_TYPES.LINE:
+      return ResponsiveLine;
+    case NIVO_CHART_TYPES.BAR:
+      return ResponsiveBar;
+    case NIVO_CHART_TYPES.PIE:
+      return ResponsivePie;
+    case NIVO_CHART_TYPES.CHOROPLETH:
+      return ResponsiveChoropleth;
+    default:
+      return ResponsiveLine;
+  }
 };
 
 // Nivo uses different chart types
@@ -96,13 +136,18 @@ const NivoAdapter = ({
 
   // Convert data to nivo format
 const nivoData = useMemo(() => {
-  if (!data || data.length === 0) return [];
-  
+  // For choropleth, use demo data if no data is provided
+  const chartData = (getNivoChartType(chartType) === NIVO_CHART_TYPES.CHOROPLETH && (!data || data.length === 0))
+    ? DEMO_CHOROPLETH_DATA
+    : data;
+
+  if (!chartData || chartData.length === 0) return [];
+
   const palette = [...DEFAULT_PALETTE];
   
   // For pie chart - nivo pie expects { id, value, label }
   if (getNivoChartType(chartType) === NIVO_CHART_TYPES.PIE) {
-    return data.map((item, index) => ({
+    return chartData.map((item, index) => ({
       id: item.label || `item-${index}`,
       label: item.label || `Item ${index + 1}`,
       value: item.value,
@@ -114,7 +159,7 @@ const nivoData = useMemo(() => {
   // Note: Choropleth charts require additional props: features (geo data) and match function
   // These should be provided via chart configuration or data source
   if (getNivoChartType(chartType) === NIVO_CHART_TYPES.CHOROPLETH) {
-    return data.map((item, index) => ({
+    return chartData.map((item, index) => ({
       id: item.id || item.label || `region-${index}`,
       label: item.label || item.id || `Region ${index + 1}`,
       value: item.value,
@@ -127,7 +172,7 @@ const nivoData = useMemo(() => {
   return [
     {
       id: title || 'Series 1',
-      data: data.map(item => ({
+      data: chartData.map(item => ({
         x: item.label,
         y: item.value,
       })),
@@ -478,7 +523,7 @@ const choroplethConfig = useMemo(() => ({
   
 // Get the appropriate chart component and config
 const nivoChartType = getNivoChartType(chartType);
-const ChartComponent = NIVO_CHART_COMPONENTS[chartType] || ResponsiveLine;
+const ChartComponent = getNivoChartComponent(nivoChartType);
 
 let chartConfig;
 switch (nivoChartType) {

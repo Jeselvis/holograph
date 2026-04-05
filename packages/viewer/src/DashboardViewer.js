@@ -89,6 +89,10 @@ const ZoneContent = ({ zone, filters, onFilterChange, zoneData }) => {
 
       // Otherwise, fetch data from the data service
       if (!dataSource?.tableName) {
+        // For choropleth charts, pass empty array so demo data can be shown
+        if (effectiveChartType === CHART_TYPES.NIVO_CHOROPLETH) {
+          setChartData([]);
+        }
         setLoading(false);
         return;
       }
@@ -182,9 +186,11 @@ const ZoneContent = ({ zone, filters, onFilterChange, zoneData }) => {
   }
 
   // Empty data state
-  const isEmpty = zone.componentType === COMPONENT_TYPES.TABLE 
-    ? !tableData || tableData.length === 0 
-    : !chartData || chartData.length === 0;
+  // For choropleth charts, show demo data even when no data source is connected
+  const isChoropleth = effectiveChartType === CHART_TYPES.NIVO_CHOROPLETH;
+  const isEmpty = zone.componentType === COMPONENT_TYPES.TABLE
+    ? !tableData || tableData.length === 0
+    : !isChoropleth && (!chartData || chartData.length === 0);
 
   if (isEmpty) {
     return (
