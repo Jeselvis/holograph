@@ -44,6 +44,9 @@ const DashboardList = ({ dashboards, onSelect, onCreateNew, onSettings, onDelete
             <span>+</span>
             Create New Dashboard
           </button>
+          <a href="/#/viewer" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+            ↗ Viewer Demo
+          </a>
           {onRefresh && (
             <button className="btn btn-secondary" onClick={onRefresh} title="Refresh dashboards">
               🔄 Refresh

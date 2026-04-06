@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import DashboardList from './components/DashboardList';
 import DashboardEditor from './components/DashboardEditor';
@@ -19,6 +20,8 @@ import './styles/dashboard.css';
 
 // Inner component that uses filter context
 const AppContent = () => {
+  const navigate = useNavigate();
+
   // Dashboard management state
   const [dashboards, setDashboards] = useState([
     {
@@ -192,6 +195,11 @@ const AppContent = () => {
     console.log('Settings saved:', newSettings);
   }, []);
 
+  // Open the current dashboard in the standalone viewer
+  const handleOpenInViewer = useCallback(() => {
+    navigate('/viewer', { state: { dashboard: currentDashboard?.schema } });
+  }, [navigate, currentDashboard]);
+
   // Get badge class based on status
   const getStatusBadgeClass = (status) => {
     return status === 'published' ? 'top-bar-badge published' : 'top-bar-badge draft';
@@ -216,6 +224,9 @@ const AppContent = () => {
         <div className="top-bar-right">
           <button className="btn btn-secondary btn-icon" onClick={() => setShowPreview(true)}>
             👁️ Preview
+          </button>
+          <button className="btn btn-secondary btn-icon" onClick={handleOpenInViewer}>
+            ↗ Open in Viewer
           </button>
           <button className="btn btn-secondary btn-icon" onClick={handleSaveDraft}>
             💾 Save Draft

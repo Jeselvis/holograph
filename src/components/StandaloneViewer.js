@@ -1,210 +1,280 @@
 /**
- * StandaloneViewer Component
- * 
- * A standalone viewer page that displays a dashboard without the designer.
- * Used for GitHub Pages deployment of the viewer.
+ * StandaloneViewer — Viewer package demo page
+ *
+ * Demonstrates @holograph/dashboard-viewer as it would be used in a real React app.
+ * Accessible at /#/viewer. The designer's "Open in Viewer" button passes a live
+ * dashboard here via React Router route state.
  */
 
-import React, { useMemo, useState, useEffect, useRef } from 'react';
-import GridLayout from 'react-grid-layout';
-import UniversalChart from './UniversalChart';
-import TableComponent from './TableComponent';
-import { COMPONENT_TYPES } from '../types/schema';
+import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import DashboardViewer from '@holograph/dashboard-viewer';
 
-// Demo dashboard for standalone viewer
-const demoDashboard = {
-  name: 'Demo Dashboard',
-  description: 'A sample dashboard displayed in the viewer',
-  showTitle: true,
-  showSubtitle: true,
-  layout: {
-    cols: 12,
-    rowHeight: 30,
-    margin: [10, 10]
-  },
+// ---------------------------------------------------------------------------
+// Demo dashboard — uses sample tables built into the viewer's data service
+// ---------------------------------------------------------------------------
+const DEMO_DASHBOARD = {
+  name: 'Sales Analytics',
+  description: 'Demo dashboard rendered by @holograph/dashboard-viewer',
+  layout: { cols: 12, rowHeight: 30, margin: [10, 10] },
   zones: [
     {
-      id: 'zone-1',
-      title: 'Sales Overview',
+      id: 'z-bar',
+      title: 'Monthly Revenue',
+      componentType: 'chart',
+      library: 'chartjs',
+      chartType: 'chartjs_bar',
+      theme: 'default',
       showHeader: true,
-      gridPosition: { x: 0, y: 0, w: 6, h: 4 },
-      componentType: COMPONENT_TYPES.CHART,
-      chartType: 'bar',
-      chartTitle: 'Monthly Sales',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-        datasets: [{
-          label: 'Sales ($)',
-          data: [12000, 19000, 3000, 5000, 2000],
-          backgroundColor: 'rgba(54, 162, 235, 0.5)',
-          borderColor: 'rgba(54, 162, 235, 1)',
-          borderWidth: 1
-        }]
-      }
+      gridPosition: { x: 0, y: 0, w: 5, h: 5 },
+      dataSource: { tableName: 'sales_data', labelColumn: 'month', valueColumn: 'revenue' },
     },
     {
-      id: 'zone-2',
-      title: 'Revenue Breakdown',
+      id: 'z-donut',
+      title: 'Regional Sales',
+      componentType: 'chart',
+      library: 'chartjs',
+      chartType: 'chartjs_doughnut',
+      theme: 'ocean',
       showHeader: true,
-      gridPosition: { x: 6, y: 0, w: 6, h: 4 },
-      componentType: COMPONENT_TYPES.CHART,
-      chartType: 'doughnut',
-      chartTitle: 'Revenue by Region',
-      data: {
-        labels: ['North', 'South', 'East', 'West'],
-        datasets: [{
-          data: [300, 50, 100, 150],
-          backgroundColor: [
-            'rgba(255, 99, 132, 0.5)',
-            'rgba(54, 162, 235, 0.5)',
-            'rgba(255, 206, 86, 0.5)',
-            'rgba(75, 192, 192, 0.5)'
-          ],
-          borderColor: [
-            'rgba(255, 99, 132, 1)',
-            'rgba(54, 162, 235, 1)',
-            'rgba(255, 206, 86, 1)',
-            'rgba(75, 192, 192, 1)'
-          ],
-          borderWidth: 1
-        }]
-      }
+      gridPosition: { x: 5, y: 0, w: 3, h: 5 },
+      dataSource: { tableName: 'regional_sales', labelColumn: 'region', valueColumn: 'sales' },
     },
     {
-      id: 'zone-3',
-      title: 'Trend Analysis',
+      id: 'z-line',
+      title: 'Customer Growth',
+      componentType: 'chart',
+      library: 'nivo',
+      chartType: 'nivo_line',
+      theme: 'default',
       showHeader: true,
-      gridPosition: { x: 0, y: 4, w: 12, h: 4 },
-      componentType: COMPONENT_TYPES.CHART,
-      chartType: 'line',
-      chartTitle: '6-Month Trend',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [{
-          label: 'Revenue',
-          data: [12000, 19000, 15000, 25000, 22000, 30000],
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          borderColor: 'rgba(75, 192, 192, 1)',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.4
-        }]
-      }
-    }
-  ]
+      gridPosition: { x: 8, y: 0, w: 4, h: 5 },
+      dataSource: { tableName: 'customer_growth', labelColumn: 'month', valueColumn: 'customers' },
+    },
+    {
+      id: 'z-pie',
+      title: 'Performance Metrics',
+      componentType: 'chart',
+      library: 'nivo',
+      chartType: 'nivo_pie',
+      theme: 'sunset',
+      showHeader: true,
+      gridPosition: { x: 0, y: 5, w: 4, h: 5 },
+      dataSource: { tableName: 'performance_metrics', labelColumn: 'metric', valueColumn: 'value' },
+    },
+    {
+      id: 'z-nivo-bar',
+      title: 'Product Trends',
+      componentType: 'chart',
+      library: 'nivo',
+      chartType: 'nivo_bar',
+      theme: 'forest',
+      showHeader: true,
+      gridPosition: { x: 4, y: 5, w: 8, h: 5 },
+      dataSource: { tableName: 'product_trends', labelColumn: 'product', valueColumn: 'sales' },
+    },
+  ],
 };
 
-const StandaloneViewer = () => {
-  const [gridWidth, setGridWidth] = useState(1100);
-  const contentRef = useRef(null);
-  
-  // Get dashboard ID from URL query params
-  const params = new URLSearchParams(window.location.search);
-  const dashboardId = params.get('id');
+// ---------------------------------------------------------------------------
+// Usage code snippet shown on the "Usage" tab
+// ---------------------------------------------------------------------------
+const CODE_SNIPPET = `import { DashboardViewer } from '@holograph/dashboard-viewer';
 
-  // In production, fetch dashboard by ID from your API
-  // For now, use demo dashboard
-  const dashboard = demoDashboard;
-
-  // Calculate grid dimensions for preview - use responsive width
-  useEffect(() => {
-    const updateWidth = () => {
-      if (contentRef.current) {
-        const containerWidth = contentRef.current.offsetWidth;
-        const newWidth = Math.max(400, containerWidth - 40);
-        setGridWidth(newWidth);
-      }
-    };
-
-    updateWidth();
-
-    const resizeObserver = new ResizeObserver(updateWidth);
-    if (contentRef.current) {
-      resizeObserver.observe(contentRef.current);
-    }
-
-    return () => resizeObserver.disconnect();
-  }, []);
-
-  // Generate layout for react-grid-layout
-  const layout = useMemo(() => {
-    if (!dashboard || !dashboard.zones) return [];
-    return dashboard.zones.map((zone) => ({
-      i: zone.id,
-      x: zone.gridPosition.x,
-      y: zone.gridPosition.y,
-      w: zone.gridPosition.w,
-      h: zone.gridPosition.h,
-    }));
-  }, [dashboard]);
-
-  // Calculate grid dimensions for preview
-  const cols = dashboard?.layout?.cols || 12;
-  const rowHeight = dashboard?.layout?.rowHeight || 30;
-  const margin = dashboard?.layout?.margin || [10, 10];
+function App() {
+  const [filters, setFilters] = useState({});
 
   return (
-    <div className="viewer-page">
-      <div className="viewer-header">
-        <h1 className="viewer-title">📊 {dashboard.name}</h1>
-        {dashboard.description && (
-          <p className="viewer-description">{dashboard.description}</p>
-        )}
+    <DashboardViewer
+      dashboard={dashboardSchema}   // schema from the designer
+      filters={filters}             // optional: drives chart data filtering
+      onFilterChange={setFilters}   // optional: filter changes callback
+    />
+  );
+}
+
+// Pass your own data directly (bypasses the data service):
+<DashboardViewer
+  dashboard={schema}
+  data={{
+    'zone-id': [
+      { label: 'Jan', value: 100 },
+      { label: 'Feb', value: 200 },
+    ],
+  }}
+/>`;
+
+const PROPS_DOC = [
+  ['dashboard', 'object', 'Dashboard schema exported from the designer'],
+  ['data',      'object', 'Optional: { zoneId: [{ label, value }] } — bypasses data service'],
+  ['filters',   'object', 'Optional: filter values applied to all chart queries'],
+  ['onFilterChange', 'function', 'Callback when filters change internally'],
+  ['className', 'string', 'Optional CSS class added to the root element'],
+];
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+const StandaloneViewer = () => {
+  const location = useLocation();
+  const [showCode, setShowCode] = useState(false);
+  const [filters, setFilters] = useState({});
+
+  // If the designer passed a real dashboard via route state, use it; else demo
+  const dashboard = location.state?.dashboard || DEMO_DASHBOARD;
+  const isLive = !!location.state?.dashboard;
+
+  // ---- styles (inline to keep the component self-contained) ----
+  const s = {
+    page: {
+      minHeight: '100vh',
+      background: '#f1f5f9',
+      display: 'flex',
+      flexDirection: 'column',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    },
+    header: {
+      background: '#0f172a',
+      color: '#f8fafc',
+      padding: '10px 20px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100,
+      boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
+    },
+    headerLeft: { display: 'flex', alignItems: 'center', gap: '12px' },
+    backLink: { color: '#94a3b8', fontSize: '13px', textDecoration: 'none' },
+    divider: { color: '#334155' },
+    title: { fontSize: '14px', fontWeight: 600 },
+    badge: (live) => ({
+      background: live ? '#22c55e18' : '#0ea5e918',
+      color: live ? '#4ade80' : '#38bdf8',
+      border: `1px solid ${live ? '#22c55e40' : '#0ea5e940'}`,
+      fontSize: '11px',
+      padding: '2px 8px',
+      borderRadius: '12px',
+    }),
+    toggleBtn: (active) => ({
+      background: active ? '#0ea5e9' : 'transparent',
+      color: active ? '#fff' : '#94a3b8',
+      border: '1px solid #334155',
+      borderRadius: '6px',
+      padding: '5px 12px',
+      fontSize: '13px',
+      cursor: 'pointer',
+    }),
+    body: { flex: 1, padding: '16px' },
+    hint: {
+      background: '#fff',
+      border: '1px solid #e2e8f0',
+      borderRadius: '8px',
+      padding: '10px 16px',
+      marginBottom: '12px',
+      fontSize: '13px',
+      color: '#64748b',
+    },
+    codeBody: {
+      flex: 1,
+      padding: '32px',
+      maxWidth: '820px',
+      margin: '0 auto',
+      width: '100%',
+    },
+    codeBlock: {
+      background: '#1e293b',
+      borderRadius: '8px',
+      padding: '20px',
+      marginBottom: '16px',
+    },
+    codeLabel: { color: '#64748b', fontSize: '11px', letterSpacing: '0.05em', marginBottom: '8px' },
+    pre: {
+      color: '#e2e8f0',
+      margin: 0,
+      fontSize: '13px',
+      fontFamily: '"Fira Code", "Cascadia Code", monospace',
+      lineHeight: 1.65,
+      overflowX: 'auto',
+      whiteSpace: 'pre',
+    },
+    propsBox: {
+      marginTop: '20px',
+      padding: '16px 20px',
+      background: '#f0fdf4',
+      borderRadius: '8px',
+      border: '1px solid #bbf7d0',
+    },
+  };
+
+  return (
+    <div style={s.page}>
+      {/* ── Header ── */}
+      <div style={s.header}>
+        <div style={s.headerLeft}>
+          <a href="/#/" style={s.backLink}>← Designer</a>
+          <span style={s.divider}>|</span>
+          <span style={s.title}>{isLive ? dashboard.name : 'Viewer Demo'}</span>
+          <span style={s.badge(isLive)}>
+            {isLive ? 'Live Dashboard' : '@holograph/dashboard-viewer'}
+          </span>
+        </div>
+        <button style={s.toggleBtn(showCode)} onClick={() => setShowCode(!showCode)}>
+          {showCode ? '← Preview' : '</> Usage'}
+        </button>
       </div>
-      
-      <div className="viewer-content" ref={contentRef}>
-        {!dashboard.zones || dashboard.zones.length === 0 ? (
-          <div className="viewer-empty-state">
-            <p>No charts to display</p>
+
+      {showCode ? (
+        /* ── Usage tab ── */
+        <div style={s.codeBody}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>
+            Using the Viewer
+          </h2>
+          <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '24px' }}>
+            Embed <code>DashboardViewer</code> in any React app. It accepts a dashboard schema
+            exported from the designer and renders it with full chart support.
+          </p>
+
+          <div style={s.codeBlock}>
+            <div style={s.codeLabel}>INSTALL</div>
+            <pre style={s.pre}>npm install @holograph/dashboard-viewer</pre>
           </div>
-        ) : (
-          <GridLayout
-            className="layout"
-            layout={layout}
-            cols={cols}
-            rowHeight={rowHeight}
-            margin={margin}
-            width={gridWidth}
-            draggable={false}
-            isDraggable={false}
-            isResizable={false}
-            compactType="vertical"
-            preventCollision={false}
-            useCSSTransforms={true}
-            containerPadding={[10, 10]}
-          >
-            {dashboard.zones.map((zone) => (
-              <div key={zone.id} className="viewer-zone-card">
-                {(zone.showHeader !== false) && (
-                  <div className="viewer-zone-header">
-                    <h3 className="viewer-zone-title">{zone.title}</h3>
-                  </div>
-                )}
-                <div className="viewer-zone-chart-container">
-                  {zone.componentType === COMPONENT_TYPES.TABLE ? (
-                    <TableComponent
-                      config={zone}
-                      width={null}
-                      height={null}
-                    />
-                  ) : (
-                    <UniversalChart
-                      config={zone}
-                      width={null}
-                      height={null}
-                    />
-                  )}
+
+          <div style={s.codeBlock}>
+            <div style={s.codeLabel}>USAGE</div>
+            <pre style={s.pre}>{CODE_SNIPPET}</pre>
+          </div>
+
+          <div style={s.propsBox}>
+            <strong style={{ color: '#15803d', fontSize: '13px' }}>Props</strong>
+            <div style={{ marginTop: '10px', display: 'grid', gap: '8px' }}>
+              {PROPS_DOC.map(([prop, type, desc]) => (
+                <div key={prop} style={{ fontSize: '13px', display: 'flex', gap: '10px', alignItems: 'baseline' }}>
+                  <code style={{ color: '#0f766e', minWidth: '140px' }}>{prop}</code>
+                  <code style={{ color: '#7c3aed', minWidth: '70px', fontSize: '12px' }}>{type}</code>
+                  <span style={{ color: '#6b7280' }}>{desc}</span>
                 </div>
-              </div>
-            ))}
-          </GridLayout>
-        )}
-      </div>
-      
-      <div className="viewer-footer">
-        <span className="viewer-badge">Viewer Mode</span>
-        {dashboardId && <span className="viewer-dashboard-id">Dashboard ID: {dashboardId}</span>}
-      </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* ── Preview tab ── */
+        <div style={s.body}>
+          <div style={s.hint}>
+            {isLive
+              ? `Rendering "${dashboard.name}" (${dashboard.zones?.length || 0} zones) via DashboardViewer — this is exactly how it appears embedded in another app.`
+              : 'Demo dashboard — open any dashboard from the designer using "Open in Viewer" to preview it here.'}
+          </div>
+
+          <DashboardViewer
+            dashboard={dashboard}
+            filters={filters}
+            onFilterChange={setFilters}
+          />
+        </div>
+      )}
     </div>
   );
 };
