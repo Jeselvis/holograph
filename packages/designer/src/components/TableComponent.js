@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
-import { fetchChartDataMulti, fetchTableData } from '../services/dataService';
+import { fetchChartDataMulti, fetchTableData, subscribeToDataServiceInit, getDataServiceVersion } from '../services/dataService';
 import { THEMES } from '../types/schema';
 import { useFilters } from '../hooks/useFilters';
 
@@ -20,6 +20,9 @@ const TableComponent = ({ config, width, height }) => {
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
+  const [dataServiceVersion, setDataServiceVersion] = useState(getDataServiceVersion);
+
+  useEffect(() => subscribeToDataServiceInit(setDataServiceVersion), []);
   const containerRef = useRef(null);
 
   const { title, dataSource, theme } = config;
@@ -122,7 +125,7 @@ const TableComponent = ({ config, width, height }) => {
     return () => {
       isMounted = false;
     };
-  }, [dataSource?.tableName, dataSource?.labelColumn, JSON.stringify(dataSource?.valueColumns), dataSource?.valueColumn, dataSource?.columns, JSON.stringify(filters)]);
+  }, [dataSource?.tableName, dataSource?.labelColumn, JSON.stringify(dataSource?.valueColumns), dataSource?.valueColumn, dataSource?.columns, JSON.stringify(filters), dataServiceVersion]);
 
   // Reset to page 1 when data changes
   useEffect(() => {

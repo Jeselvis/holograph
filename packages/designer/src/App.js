@@ -139,7 +139,7 @@ const AppContent = () => {
 
       // Pass already-fetched values directly so initializeDataService doesn't need to re-fetch
       const savedSettings = loadSettings();
-      initializeDataService(
+      await initializeDataService(
         null,
         savedSettings?.dataSource?.schemaUrl || null,
         savedSettings?.dataSource?.databaseName || gs?.database?.defaultDatabaseName || null,

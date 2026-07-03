@@ -10,7 +10,7 @@
 import React, { useState, useEffect, useRef, useCallback, useLayoutEffect, useMemo } from 'react';
 import D3Adapter from '../adapters/D3Adapter';
 import ChartJsAdapter from '../adapters/ChartJsAdapter';
-import { fetchChartDataMulti } from '../services/dataService';
+import { fetchChartDataMulti, subscribeToDataServiceInit, getDataServiceVersion } from '../services/dataService';
 import { CHART_LIBRARIES, CHART_TYPES, DEFAULT_CHART_TYPE } from '../types/schema';
 import { useFilters } from '../hooks/useFilters';
 
@@ -20,6 +20,9 @@ const UniversalChart = ({ config, width, height }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dimensions, setDimensions] = useState({ width: 300, height: 200 });
+  const [dataServiceVersion, setDataServiceVersion] = useState(getDataServiceVersion);
+
+  useEffect(() => subscribeToDataServiceInit(setDataServiceVersion), []);
   const containerRef = useRef(null);
 
   const { library, theme, title, dataSource, chartType, legend, dataSort } = config;
@@ -107,7 +110,7 @@ const UniversalChart = ({ config, width, height }) => {
     return () => {
       isMounted = false;
     };
-  }, [dataSource?.tableName, dataSource?.labelColumn, JSON.stringify(valueColumns), JSON.stringify(filters)]);
+  }, [dataSource?.tableName, dataSource?.labelColumn, JSON.stringify(valueColumns), JSON.stringify(filters), dataServiceVersion]);
 
   const sortedChartData = useMemo(() => {
     if (!dataSort || dataSort === 'none') return chartData;

@@ -82,6 +82,22 @@ let realSchemaData = null;
 let dataQueryUrl = null;
 let datasourceName = null;
 
+// Subscribers notified after each initializeDataService completes
+let dataServiceVersion = 0;
+const dataServiceListeners = new Set();
+
+export const getDataServiceVersion = () => dataServiceVersion;
+
+export const subscribeToDataServiceInit = (cb) => {
+  dataServiceListeners.add(cb);
+  return () => dataServiceListeners.delete(cb);
+};
+
+const notifyDataServiceListeners = () => {
+  dataServiceVersion++;
+  dataServiceListeners.forEach(cb => cb(dataServiceVersion));
+};
+
 /**
  * Initialize the data service cache
  * In production, this would fetch schema info from the SQL database
@@ -136,6 +152,7 @@ export const initializeDataService = async (connectionString = null, schemaUrl =
     await loadMockData();
   }
 
+  notifyDataServiceListeners();
   return tablesCache;
 };
 
