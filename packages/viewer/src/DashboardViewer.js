@@ -64,12 +64,14 @@ const ZoneContent = ({ zone, filters, onFilterChange, zoneData, resolvedStyles =
     if (!containerRef.current) return;
 
     const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width: containerWidth, height: containerHeight } = entry.contentRect;
-        const chartWidth = Math.max(150, containerWidth - 16);
-        const chartHeight = Math.max(120, containerHeight - 16);
-        setDimensions({ width: chartWidth, height: chartHeight });
-      }
+      requestAnimationFrame(() => {
+        for (const entry of entries) {
+          const { width: containerWidth, height: containerHeight } = entry.contentRect;
+          const chartWidth = Math.max(150, containerWidth - 16);
+          const chartHeight = Math.max(120, containerHeight - 16);
+          setDimensions({ width: chartWidth, height: chartHeight });
+        }
+      });
     });
 
     resizeObserver.observe(containerRef.current);
@@ -427,7 +429,7 @@ const DashboardViewer = ({
 
     updateWidth();
 
-    const resizeObserver = new ResizeObserver(updateWidth);
+    const resizeObserver = new ResizeObserver(() => requestAnimationFrame(updateWidth));
     resizeObserver.observe(containerRef.current);
 
     return () => resizeObserver.disconnect();
