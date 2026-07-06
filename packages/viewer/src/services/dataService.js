@@ -202,15 +202,30 @@ export const fetchChartData = async (tableName, labelColumn, valueColumn, filter
   }));
 };
 
+const aggregateByLabel = (rows, labelColumn, cols) => {
+  const map = new Map();
+  for (const row of rows) {
+    const label = row[labelColumn] ?? row[Object.keys(row)[0]];
+    const key = String(label ?? '');
+    if (!map.has(key)) {
+      const point = { label };
+      cols.forEach((col) => { point[col] = 0; });
+      map.set(key, point);
+    }
+    const point = map.get(key);
+    cols.forEach((col) => {
+      const v = Number(row[col]);
+      if (!isNaN(v)) point[col] += v;
+    });
+  }
+  return Array.from(map.values());
+};
+
 export const fetchChartDataMulti = async (tableName, labelColumn, valueColumns, filters = null) => {
   const cols = Array.isArray(valueColumns) ? valueColumns : (valueColumns ? [valueColumns] : []);
   const rows = await fetchRows(tableName);
   const filtered = applyFilters(rows, filters);
-  return filtered.map((row) => {
-    const point = { label: row[labelColumn] ?? row[Object.keys(row)[0]] };
-    cols.forEach((col) => { point[col] = row[col]; });
-    return point;
-  });
+  return aggregateByLabel(filtered, labelColumn, cols);
 };
 
 export const fetchTableData = async (tableName, columns = null, filters = null) => {

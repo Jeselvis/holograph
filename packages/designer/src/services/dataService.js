@@ -520,6 +520,25 @@ export const fetchChartData = async (tableName, labelColumn, valueColumn, filter
  * Fetch chart data for multiple value columns (multi-series support).
  * Returns rows shaped as { label, [col1]: val, [col2]: val, ... }
  */
+const aggregateByLabel = (rows, labelColumn, cols) => {
+  const map = new Map();
+  for (const row of rows) {
+    const label = row[labelColumn];
+    const key = String(label ?? '');
+    if (!map.has(key)) {
+      const point = { label };
+      cols.forEach((col) => { point[col] = 0; });
+      map.set(key, point);
+    }
+    const point = map.get(key);
+    cols.forEach((col) => {
+      const v = Number(row[col]);
+      if (!isNaN(v)) point[col] += v;
+    });
+  }
+  return Array.from(map.values());
+};
+
 export const fetchChartDataMulti = async (tableName, labelColumn, valueColumns, filters = null) => {
   const cols = Array.isArray(valueColumns) ? valueColumns : (valueColumns ? [valueColumns] : []);
 
@@ -529,11 +548,7 @@ export const fetchChartDataMulti = async (tableName, labelColumn, valueColumns, 
     if (filters && Object.keys(filters).length > 0) {
       filtered = rows.filter((row) => applyFilterToRow(row, filters));
     }
-    return filtered.map((row) => {
-      const point = { label: row[labelColumn] };
-      cols.forEach((col) => { point[col] = row[col]; });
-      return point;
-    });
+    return aggregateByLabel(filtered, labelColumn, cols);
   }
 
   await new Promise((resolve) => setTimeout(resolve, 200 + Math.random() * 300));
@@ -548,12 +563,7 @@ export const fetchChartDataMulti = async (tableName, labelColumn, valueColumns, 
     filteredData = tableData.filter((row) => applyFilterToRow(row, filters));
   }
 
-  const firstKey = (row) => Object.keys(row)[0];
-  return filteredData.map((row) => {
-    const point = { label: row[labelColumn] ?? row[firstKey(row)] };
-    cols.forEach((col) => { point[col] = row[col]; });
-    return point;
-  });
+  return aggregateByLabel(filteredData, labelColumn, cols);
 };
 
 /**
