@@ -131,10 +131,11 @@ export const initializeDataService = async (connectionString = null, schemaUrl =
       realSchemaData = await response.json();
 
       const tablesArray = realSchemaData.tables || [];
-      tablesCache = tablesArray.map(t => t.name);
+      tablesCache = tablesArray.map(t => (t.schema ? `${t.schema}.${t.name}` : t.name));
       columnsCache = {};
       tablesArray.forEach(t => {
-        columnsCache[t.name] = t.columns.map(c => c.name);
+        const fullName = t.schema ? `${t.schema}.${t.name}` : t.name;
+        columnsCache[fullName] = t.columns.map(c => c.name);
       });
       uniqueValuesCache = {};
       usingRealSchema = true;
