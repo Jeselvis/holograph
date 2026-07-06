@@ -178,9 +178,9 @@ export const createZoneConfig = (id) => ({
   },
   dataSort: 'none',
   dataSource: {
-    tableName: 'sales_data',
-    labelColumn: 'month',
-    valueColumns: ['revenue'],
+    tableName: '',
+    labelColumn: '',
+    valueColumns: [],
   },
   gridPosition: {
     x: 0,

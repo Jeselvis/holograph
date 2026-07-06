@@ -10,11 +10,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useFilters } from '../hooks/useFilters';
-import { 
-  getCachedTables, 
-  getCachedColumns, 
+import {
+  getCachedTables,
+  getCachedColumns,
   getUniqueValuesForColumn,
-  initializeDataService 
+  subscribeToDataServiceInit,
 } from '../services/dataService';
 
 /**
@@ -43,18 +43,17 @@ const FilterBar = ({ visible = true, settings }) => {
   // Track which pending filter is currently being edited
   const [activePendingIndex, setActivePendingIndex] = useState(0);
 
-  // Initialize data service on mount
+  // Populate table list from already-initialized data service, then re-populate on re-init
   useEffect(() => {
-    const init = async () => {
-      await initializeDataService(
-        settings?.dataSource?.connectionString,
-        settings?.dataSource?.schemaUrl,
-        settings?.dataSource?.databaseName
-      );
+    const tables = getCachedTables();
+    if (tables.length > 0) {
+      setAvailableTables(tables);
+      setIsInitialized(true);
+    }
+    return subscribeToDataServiceInit(() => {
       setAvailableTables(getCachedTables());
       setIsInitialized(true);
-    };
-    init();
+    });
   }, []);
 
   // Get the currently active pending filter

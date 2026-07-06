@@ -96,6 +96,8 @@ const AppContent = () => {
 
   // On startup: load global settings, apply webhooks, fetch schema, and auto-load dashboards
   useEffect(() => {
+    let isMounted = true;
+
     const savedGlobalSettingsUrl =
       loadSettings()?.saveLocations?.globalSettingsUrl ||
       process.env.REACT_APP_DEFAULT_GLOBAL_SETTINGS_URL ||
@@ -111,6 +113,7 @@ const AppContent = () => {
     }
 
     globalSettingsService.getAllSettings().then(async (gs) => {
+      if (!isMounted) return;
       const wh = gs?.webhooks;
       if (wh) {
         configureWebhookUrls({
@@ -161,6 +164,8 @@ const AppContent = () => {
         }
       }
     });
+
+    return () => { isMounted = false; };
   }, []);
 
   // Keep webhook URLs in sync when user manually changes settings

@@ -13,6 +13,7 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import UniversalChart from './UniversalChart';
 import TableComponent from './TableComponent';
+import ChartErrorBoundary from './ChartErrorBoundary';
 import ImageComponent from './ImageComponent';
 import RichTextComponent from './RichTextComponent';
 import PropertyPanel from './PropertyPanel';
@@ -474,17 +475,21 @@ const DashboardEditor = ({ dashboard, onDashboardUpdate, settings, onFileSources
                         height={null}
                       />
                     ) : zone.componentType === COMPONENT_TYPES.TABLE ? (
-                      <TableComponent
-                        config={zone}
-                        width={null}
-                        height={null}
-                      />
+                      <ChartErrorBoundary zoneId={zone.id} tableName={zone.dataSource?.tableName}>
+                        <TableComponent
+                          config={zone}
+                          width={null}
+                          height={null}
+                        />
+                      </ChartErrorBoundary>
                     ) : (
-                      <UniversalChart
-                        config={zone}
-                        width={null}
-                        height={null}
-                      />
+                      <ChartErrorBoundary zoneId={zone.id} tableName={zone.dataSource?.tableName}>
+                        <UniversalChart
+                          config={zone}
+                          width={null}
+                          height={null}
+                        />
+                      </ChartErrorBoundary>
                     )}
                   </div>
                 </div>

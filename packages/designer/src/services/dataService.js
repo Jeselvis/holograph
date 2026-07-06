@@ -443,7 +443,7 @@ const fetchQueryData = async (tableName) => {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Data query failed: ${response.status} ${response.statusText}`);
   const result = await response.json();
-  const rows = result.rows || [];
+  const rows = result.data || result.rows || [];
   queryDataCache[tableName] = rows;
   uniqueValuesCache = {}; // invalidate so next call re-derives from fresh data
   return rows;
@@ -458,7 +458,7 @@ const fetchQueryData = async (tableName) => {
  * @returns {Promise<Array<{label: string, value: number}>>} Formatted chart data
  */
 export const fetchChartData = async (tableName, labelColumn, valueColumn, filters = null) => {
-  if (usingRealSchema && dataQueryUrl || fileSourceRegistry[tableName] || joinDefinitions[tableName]) {
+  if ((usingRealSchema && dataQueryUrl) || fileSourceRegistry[tableName] || joinDefinitions[tableName]) {
     const rows = await fetchQueryData(tableName);
     let filtered = rows;
     if (filters && Object.keys(filters).length > 0) {
@@ -522,7 +522,7 @@ export const fetchChartData = async (tableName, labelColumn, valueColumn, filter
 export const fetchChartDataMulti = async (tableName, labelColumn, valueColumns, filters = null) => {
   const cols = Array.isArray(valueColumns) ? valueColumns : (valueColumns ? [valueColumns] : []);
 
-  if (usingRealSchema && dataQueryUrl || fileSourceRegistry[tableName] || joinDefinitions[tableName]) {
+  if ((usingRealSchema && dataQueryUrl) || fileSourceRegistry[tableName] || joinDefinitions[tableName]) {
     const rows = await fetchQueryData(tableName);
     let filtered = rows;
     if (filters && Object.keys(filters).length > 0) {
@@ -563,7 +563,7 @@ export const fetchChartDataMulti = async (tableName, labelColumn, valueColumns, 
  * @returns {Promise<Array<Object>>} Raw table data with all columns
  */
 export const fetchTableData = async (tableName, columns = null, filters = null) => {
-  if (usingRealSchema && dataQueryUrl || fileSourceRegistry[tableName] || joinDefinitions[tableName]) {
+  if ((usingRealSchema && dataQueryUrl) || fileSourceRegistry[tableName] || joinDefinitions[tableName]) {
     const rows = await fetchQueryData(tableName);
     let filtered = rows;
     if (filters && Object.keys(filters).length > 0) {
